@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useProgress } from "@/components/providers/progress-provider";
 import { useToast } from "@/components/providers/toast-provider";
+import { InstallAppButton } from "@/components/pwa";
 import { Badge, Button, ButtonLink, Card, Field, inputClass, PageHeader, StatCard } from "@/components/ui";
 import { deriveStats } from "@/lib/progress/engine";
 import { profileSchema } from "@/lib/progress/schema";
@@ -37,7 +38,7 @@ export default function ProfilPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Akun" title="Profil & Pengaturan" icon={<UserRound className="h-6 w-6" />} />
+      <PageHeader eyebrow="Akun" title="Profil & Pengaturan" icon={<UserRound className="h-6 w-6" />} actions={<InstallAppButton />} />
       <div className="grid gap-5 lg:grid-cols-[1fr_1.2fr]">
         <div className="space-y-5">
           <Card>

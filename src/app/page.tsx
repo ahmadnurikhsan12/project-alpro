@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { HeroGraph } from "@/components/illustrations";
 import { Logo } from "@/components/logo";
+import { InstallAppButton } from "@/components/pwa";
 import { Badge, ButtonLink, DifficultyBadge } from "@/components/ui";
 import { GAMES } from "@/content/games";
 import { LESSONS } from "@/content/lessons";
@@ -80,6 +81,9 @@ export default function LandingPage() {
                 </ButtonLink>
               </div>
               <p className="mt-3 text-sm text-ink-muted">Tanpa daftar, tanpa login. Langsung belajar.</p>
+              <div className="mt-4">
+                <InstallAppButton />
+              </div>
             </div>
             <div className="mx-auto w-full max-w-md animate-pop rounded-[28px] border border-slate-200 bg-white p-3 shadow-lift">
               <HeroGraph />

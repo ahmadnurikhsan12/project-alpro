@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ProgressProvider } from "@/components/providers/progress-provider";
 import { ToastProvider } from "@/components/providers/toast-provider";
+import { ServiceWorkerRegister } from "@/components/pwa";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", display: "swap" });
@@ -12,6 +13,9 @@ export const metadata: Metadata = {
     "MathQuest adalah media pembelajaran interaktif Sistem Persamaan Linear Dua Variabel (SPLDV) untuk siswa SMP kelas VIII: materi, simulasi eliminasi, grafik, latihan, evaluasi, dan game edukatif.",
   applicationName: "MathQuest",
   keywords: ["SPLDV", "metode eliminasi", "matematika SMP", "kelas VIII", "persamaan linear"],
+  appleWebApp: { capable: true, title: "MathQuest", statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
@@ -33,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ToastProvider>
           <ProgressProvider>{children}</ProgressProvider>
         </ToastProvider>
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

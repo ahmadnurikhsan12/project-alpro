@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "seed:generate": "vite-node --config vitest.config.ts scripts/generate-seed.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "icons:generate": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",
