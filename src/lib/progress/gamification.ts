@@ -2,7 +2,7 @@ import { GAME_IDS } from "@/content/games";
 import { LESSONS } from "@/content/lessons";
 import { PRACTICE_BY_ID } from "@/content/practice";
 import type { Difficulty } from "@/lib/math/spldv";
-import { LAB_TOOLS, type ProgressState } from "./types";
+import { LAB_TOOLS, type ProgressState, type QuestionStat } from "./types";
 
 // ------------------------------------------------------------------ Level
 
@@ -194,3 +194,14 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 ];
 
 export const ACHIEVEMENT_BY_ID = Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, a])) as Record<string, AchievementDef>;
+
+/**
+ * Pratinjau XP untuk ditampilkan ke siswa SEBELUM sesi dikirim: berapa persen XP soal ini
+ * jika benar pada percobaan ke-`sessionAttemptNo` sesi ini. Memakai aturan yang sama dengan mesin
+ * (percobaan dihitung kumulatif sepanjang waktu; soal yang sudah memberi XP tidak memberi lagi).
+ */
+export function previewQuestionXp(stat: QuestionStat | undefined, previouslyRewarded: boolean, sessionAttemptNo: number): { percent: number; alreadyRewarded: boolean } {
+  if (stat ? stat.solvedAt !== null : previouslyRewarded) return { percent: 0, alreadyRewarded: true };
+  const lifetime = (stat?.attempts ?? 0) + sessionAttemptNo;
+  return { percent: Math.round(attemptMultiplier(lifetime) * 100), alreadyRewarded: false };
+}

@@ -10,6 +10,34 @@ function trackErrors(page: Page) {
   return errors;
 }
 
+/**
+ * Mengerjakan satu soal Latihan apa adanya (sering salah): mencoba jawaban demi jawaban sesuai
+ * alur pendampingan — memilih alasan pada pilihan ganda, atau menyerah — sampai tombol lanjut muncul.
+ */
+async function answerUntilDone(page: Page, nextName: string) {
+  const next = page.getByRole("button", { name: nextName });
+  const check = page.getByRole("button", { name: /Periksa (Jawaban|Lagi)/ });
+  for (let guard = 0; guard < 10; guard++) {
+    if (await next.isVisible().catch(() => false)) return;
+    const giveUp = page.getByRole("button", { name: /Lewati dan lihat pembahasan/ });
+    if (await giveUp.isVisible().catch(() => false)) {
+      await giveUp.click();
+      continue;
+    }
+    const gate = page.getByTestId("reason-gate");
+    if (await gate.isVisible().catch(() => false)) await gate.getByRole("radio").first().click();
+    const option = page.locator('main [role="radio"]:not([disabled])').first();
+    if (await option.isVisible().catch(() => false)) await option.click();
+    else {
+      const inputs = page.locator("main input");
+      const n = await inputs.count();
+      for (let k = 0; k < n; k++) await inputs.nth(k).fill(String(guard + 1));
+    }
+    if (await check.isEnabled().catch(() => false)) await check.click();
+  }
+  await expect(next).toBeVisible();
+}
+
 const guestXp = (page: Page) =>
   page.evaluate(() => JSON.parse(localStorage.getItem("mathquest.guest.v1") ?? "{}")?.state?.xp ?? 0);
 
@@ -45,11 +73,20 @@ test("materi: buka modul, kerjakan mini quiz, progres tersimpan & bertahan setel
   await quiz.getByRole("radio", { name: "Benar" }).click();
   await quiz.getByRole("button", { name: "Periksa Jawaban" }).click();
   await quiz.getByRole("button", { name: "Soal Berikutnya" }).click();
-  // Soal 4: salah dengan sengaja → umpan balik + pembahasan
+  // Soal 4: salah dengan sengaja → pendamping menanggapi, jawaban & pembahasan TIDAK langsung terbuka
   await quiz.getByLabel("Jawaban").fill("4");
   await quiz.getByRole("button", { name: "Periksa Jawaban" }).click();
-  await expect(quiz.getByText("Belum tepat.")).toBeVisible();
-  await expect(quiz.getByText("Pembahasan")).toBeVisible();
+  await expect(quiz.getByText(/Belum tepat. Percobaan 1 dari 3/)).toBeVisible();
+  await expect(quiz.getByTestId("mediator-message")).toBeVisible();
+  await expect(quiz.getByText("Pembahasan", { exact: true })).toHaveCount(0);
+  await expect(quiz.getByText(/Jawaban yang benar/)).toHaveCount(0);
+  // kesempatan kedua dan ketiga, lalu kesempatan habis → pembahasan terbuka
+  await quiz.getByLabel("Jawaban").fill("5");
+  await quiz.getByRole("button", { name: "Periksa Lagi" }).click();
+  await quiz.getByLabel("Jawaban").fill("6");
+  await quiz.getByRole("button", { name: "Periksa Lagi" }).click();
+  await expect(quiz.getByText("Pembahasan", { exact: true })).toBeVisible();
+  await expect(quiz.getByText(/Jawaban yang benar/)).toBeVisible();
   await quiz.getByRole("button", { name: "Lihat Hasil" }).click();
   await expect(quiz.getByText("Mini quiz selesai!")).toBeVisible();
   await expect(quiz.getByText("75", { exact: true })).toBeVisible();
@@ -113,15 +150,7 @@ test("latihan: sesi lengkap dengan petunjuk & ringkasan", async ({ page }) => {
   await page.goto("/latihan");
   await page.getByRole("button", { name: /Mulai Latihan/ }).click();
   for (let i = 0; i < 5; i++) {
-    const radio = page.getByRole("radio").first();
-    if (await radio.isVisible().catch(() => false)) await radio.click();
-    else {
-      const inputs = page.locator("main input");
-      const n = await inputs.count();
-      for (let k = 0; k < n; k++) await inputs.nth(k).fill("1");
-    }
-    await page.getByRole("button", { name: "Periksa Jawaban" }).click();
-    await expect(page.getByText("Pembahasan")).toBeVisible();
+    await answerUntilDone(page, i < 4 ? "Soal Berikutnya" : "Lihat Hasil");
     await page.getByRole("button", { name: i < 4 ? "Soal Berikutnya" : "Lihat Hasil" }).click();
   }
   await expect(page.getByText("Latihan Mudah selesai!")).toBeVisible();
@@ -141,7 +170,7 @@ test("evaluasi: soal tanpa kunci, kumpulkan, nilai & pembahasan muncul", async (
   expect(body.questions).toHaveLength(10);
   for (const q of body.questions) expect(q).not.toHaveProperty("answer");
   await expect(page.getByText("0 dari 10 soal terjawab")).toBeVisible();
-  await expect(page.getByText("Pembahasan")).toHaveCount(0);
+  await expect(page.getByText("Pembahasan", { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Kumpulkan Jawaban" }).click();
   await expect(page.getByText(/belum dijawab/)).toBeVisible();
   await page.getByRole("button", { name: "Ya, kumpulkan" }).click();

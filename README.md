@@ -123,8 +123,8 @@ Perintah lain:
 ## 8. Pengujian
 
 ```bash
-npm run lint && npm run typecheck && npm test   # 126 unit test
-npm run build && npm run test:e2e               # 29 test E2E (desktop + ponsel)
+npm run lint && npm run typecheck && npm test   # 217 unit test
+npm run build && npm run test:e2e               # 34 test E2E (desktop + ponsel)
 ```
 
 Unit test memverifikasi secara otomatis **kebenaran matematis seluruh 100 soal** (sistem diselesaikan ulang dengan pecahan eksak), solver & perencana eliminasi, engine XP (anti-farming, batas harian, validasi skor game), dan aturan migrasi. Test E2E menjalankan alur nyata di Chromium: Guest Mode, mini quiz + persistensi setelah reload, simulasi eliminasi lengkap, uji pasangan, grafik, latihan, evaluasi (memastikan respons soal tidak berisi kunci), ketujuh game, profil, serta pemeriksaan tidak ada scroll horizontal pada layar ponsel.

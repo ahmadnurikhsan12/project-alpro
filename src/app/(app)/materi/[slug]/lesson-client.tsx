@@ -30,7 +30,8 @@ export function MiniQuiz({ lessonId, nextSlug }: { lessonId: string; nextSlug?: 
       title="Mini quiz"
       questions={lesson.quiz}
       passScore={XP_RULES.lessonPassScore}
-      onFinish={(answers) => record({ type: "lesson_quiz", lessonId, answers })}
+      statKeyPrefix="lesson:"
+      onFinish={(answers, responses) => record({ type: "lesson_quiz", lessonId, answers, responses })}
       onRestart={() => setRun((r) => r + 1)}
       finishExtra={
         <ButtonLink href={nextSlug ? `/materi/${nextSlug}` : "/evaluasi"}>

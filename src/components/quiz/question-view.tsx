@@ -1,8 +1,8 @@
 "use client";
 
-import { CheckCircle2, Lightbulb, XCircle } from "lucide-react";
-import { useId, useState } from "react";
-import { Badge, Button, DifficultyBadge, inputClass, MathBlock, RichText } from "@/components/ui";
+import { CheckCircle2, XCircle } from "lucide-react";
+import { useId } from "react";
+import { Badge, DifficultyBadge, inputClass, MathBlock, RichText } from "@/components/ui";
 import { FORMAT_LABEL, type PublicQuestion } from "@/lib/questions/types";
 import { cn } from "@/lib/utils";
 
@@ -11,15 +11,19 @@ interface Props {
   value: string | undefined;
   onChange: (v: string) => void;
   disabled?: boolean;
-  /** Setelah diperiksa: tandai pilihan benar/salah */
+  /** Setelah selesai: tandai pilihan benar/salah (hanya untuk soal yang jawabannya boleh dibuka). */
   reveal?: { correctAnswer: string; isCorrect: boolean } | null;
+  /** Pilihan (ganda/B-S) yang sudah dicoba dan salah: dinonaktifkan tanpa membuka jawaban benar. */
+  wrongPicks?: string[];
+  /** Jawaban isian terakhir salah dan masih boleh diperbaiki. */
+  wrong?: boolean;
   number?: number;
   showMeta?: boolean;
 }
 
 const LETTERS = ["A", "B", "C", "D", "E"];
 
-export function QuestionView({ question: q, value, onChange, disabled, reveal, number, showMeta = true }: Props) {
+export function QuestionView({ question: q, value, onChange, disabled, reveal, wrongPicks, wrong, number, showMeta = true }: Props) {
   const uid = useId();
   const promptId = `${uid}-prompt`;
 
@@ -49,21 +53,21 @@ export function QuestionView({ question: q, value, onChange, disabled, reveal, n
             ).map((o, i) => {
               const selected = value === o.id;
               const isAnswer = reveal && reveal.correctAnswer === o.id;
-              const isWrongPick = reveal && selected && !reveal.isCorrect;
+              const isWrongPick = (reveal && selected && !reveal.isCorrect) || (!reveal && !!wrongPicks?.includes(o.id));
               return (
                 <button
                   key={o.id}
                   type="button"
                   role="radio"
                   aria-checked={selected}
-                  disabled={disabled}
+                  disabled={disabled || (!reveal && !!wrongPicks?.includes(o.id))}
                   onClick={() => onChange(o.id)}
                   className={cn(
                     "flex min-h-[3rem] items-center gap-3 rounded-xl border-2 px-4 py-2.5 text-left text-[0.95rem] font-medium transition-colors disabled:cursor-default",
                     isAnswer
                       ? "border-emerald-500 bg-emerald-50 text-emerald-900"
                       : isWrongPick
-                        ? "border-rose-400 bg-rose-50 text-rose-900"
+                        ? "border-rose-300 bg-rose-50 text-rose-900"
                         : selected
                           ? "border-brand-500 bg-brand-50 text-brand-900"
                           : "border-slate-200 bg-white text-ink hover:border-brand-300 hover:bg-brand-50/40",
@@ -76,7 +80,7 @@ export function QuestionView({ question: q, value, onChange, disabled, reveal, n
                   )}
                   <span className="flex-1">{o.text}</span>
                   {isAnswer && <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-label="jawaban benar" />}
-                  {isWrongPick && <XCircle className="h-5 w-5 text-rose-500" aria-label="pilihanmu salah" />}
+                  {isWrongPick && <XCircle className="h-5 w-5 text-rose-500" aria-label="pilihanmu belum tepat" />}
                 </button>
               );
             })}
@@ -92,7 +96,7 @@ export function QuestionView({ question: q, value, onChange, disabled, reveal, n
               id={`${uid}-num`}
               inputMode="decimal"
               autoComplete="off"
-              className={cn(inputClass, "text-lg font-semibold", reveal && (reveal.isCorrect ? "border-emerald-500 bg-emerald-50" : "border-rose-400 bg-rose-50"))}
+              className={cn(inputClass, "text-lg font-semibold", reveal ? (reveal.isCorrect ? "border-emerald-500 bg-emerald-50" : "border-rose-400 bg-rose-50") : wrong && "border-amber-400 bg-amber-50")}
               value={value ?? ""}
               disabled={disabled}
               onChange={(e) => onChange(e.target.value)}
@@ -105,16 +109,16 @@ export function QuestionView({ question: q, value, onChange, disabled, reveal, n
           </div>
         )}
 
-        {q.type === "pair" && <PairInput labels={q.pairLabels ?? ["x", "y"]} value={value} onChange={onChange} disabled={disabled} reveal={reveal} />}
+        {q.type === "pair" && <PairInput labels={q.pairLabels ?? ["x", "y"]} value={value} onChange={onChange} disabled={disabled} reveal={reveal} wrong={wrong} />}
       </div>
     </div>
   );
 }
 
-function PairInput({ labels, value, onChange, disabled, reveal }: { labels: [string, string]; value?: string; onChange: (v: string) => void; disabled?: boolean; reveal?: Props["reveal"] }) {
+function PairInput({ labels, value, onChange, disabled, reveal, wrong }: { labels: [string, string]; value?: string; onChange: (v: string) => void; disabled?: boolean; reveal?: Props["reveal"]; wrong?: boolean }) {
   const uid = useId();
   const [a = "", b = ""] = (value ?? ",").split(",");
-  const tone = reveal ? (reveal.isCorrect ? "border-emerald-500 bg-emerald-50" : "border-rose-400 bg-rose-50") : "";
+  const tone = reveal ? (reveal.isCorrect ? "border-emerald-500 bg-emerald-50" : "border-rose-400 bg-rose-50") : wrong ? "border-amber-400 bg-amber-50" : "";
   return (
     <div className="flex flex-wrap items-end gap-3">
       {[a, b].map((v, i) => (
@@ -140,52 +144,15 @@ function PairInput({ labels, value, onChange, disabled, reveal }: { labels: [str
   );
 }
 
-/** Petunjuk bertahap: dibuka satu per satu, tidak langsung memberi jawaban. */
-export function HintBox({ hints, onUse }: { hints?: string[]; onUse?: (count: number) => void }) {
-  const [shown, setShown] = useState(0);
-  if (!hints || hints.length === 0) return null;
+/** Ringkasan setelah soal selesai: tandai benar/belum, tampilkan jawaban (jika boleh) dan pembahasan. */
+export function Feedback({ solved, correctAnswer, explanation, message }: { solved: boolean; correctAnswer: string; explanation: string[]; message?: string }) {
   return (
-    <div className="mt-4">
-      {shown > 0 && (
-        <ol className="mb-2 space-y-1.5">
-          {hints.slice(0, shown).map((h, i) => (
-            <li key={i} className="flex animate-fade-up gap-2 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
-              <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-              <span>
-                <strong>Petunjuk {i + 1}:</strong> {h}
-              </span>
-            </li>
-          ))}
-        </ol>
-      )}
-      {shown < hints.length && (
-        <Button
-          size="sm"
-          variant="ghost"
-          className="text-amber-700 hover:bg-amber-50"
-          onClick={() => {
-            setShown(shown + 1);
-            onUse?.(shown + 1);
-          }}
-        >
-          <Lightbulb className="h-4 w-4" /> {shown === 0 ? "Butuh petunjuk?" : "Petunjuk berikutnya"} ({shown + 1}/{hints.length})
-        </Button>
-      )}
-    </div>
-  );
-}
-
-export function Feedback({ isCorrect, correctAnswer, explanation }: { isCorrect: boolean; correctAnswer: string; explanation: string[] }) {
-  return (
-    <div
-      role="status"
-      className={cn("mt-5 animate-fade-up rounded-2xl border p-4", isCorrect ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50", !isCorrect && "animate-shake")}
-    >
-      <p className={cn("flex items-center gap-2 font-bold", isCorrect ? "text-emerald-800" : "text-rose-800")}>
-        {isCorrect ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
-        {isCorrect ? "Benar! Kerja bagus." : "Belum tepat."}
+    <div role="status" className={cn("mt-5 animate-fade-up rounded-2xl border p-4", solved ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50")}>
+      <p className={cn("flex items-center gap-2 font-bold", solved ? "text-emerald-800" : "text-rose-800")}>
+        {solved ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
+        {message ?? (solved ? "Benar! Kerja bagus." : "Belum tepat.")}
       </p>
-      {!isCorrect && (
+      {!solved && (
         <p className="mt-1 text-sm text-rose-900">
           Jawaban yang benar: <strong>{correctAnswer}</strong>
         </p>

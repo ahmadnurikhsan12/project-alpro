@@ -49,7 +49,7 @@ export default function LatihanPage() {
           key={session.key}
           title={`Latihan ${DIFFICULTY_LABEL[session.difficulty]}`}
           questions={session.questions}
-          onFinish={(answers) => record({ type: "practice", difficulty: session.difficulty, questionIds: session.questions.map((q) => q.id), answers })}
+          onFinish={(answers, responses) => record({ type: "practice", difficulty: session.difficulty, questionIds: session.questions.map((q) => q.id), answers, responses })}
           onRestart={start}
           finishExtra={
             <Button onClick={() => setSession(null)}>
@@ -143,13 +143,13 @@ export default function LatihanPage() {
           <h2 className="mt-6 font-bold text-ink">Aturan XP</h2>
           <ul className="mt-2 space-y-1.5 text-sm text-ink-soft">
             <li className="flex gap-2">
-              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-grape-500" /> XP diberikan untuk soal yang <strong>pertama kali</strong> dijawab benar.
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-grape-500" /> XP diberikan <strong>sekali per soal</strong>, menurut percobaan pertama kali soal itu benar: percobaan ke-1 = 100%, ke-2 = 50%, ke-3 dst. = tanpa XP tambahan. Jawaban salah dan petunjuk <strong>tidak mengurangi</strong> XP.
             </li>
             <li className="flex gap-2">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-grape-500" /> Bonus +{XP_RULES.practiceSessionBonus} XP per sesi (maks. {XP_RULES.practiceSessionBonusDailyLimit} sesi per hari).
             </li>
             <li className="flex gap-2">
-              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-grape-500" /> Mengulang soal tetap bermanfaat untuk berlatih, meski tanpa XP tambahan.
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-grape-500" /> Jawaban salah tidak langsung membuka jawaban: kamu mendapat tanggapan, petunjuk bertingkat, dan kesempatan memperbaiki. Mengulang soal tetap bermanfaat untuk berlatih, meski tanpa XP tambahan.
             </li>
           </ul>
         </Card>

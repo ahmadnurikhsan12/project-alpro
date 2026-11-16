@@ -10,8 +10,8 @@ import { cn, formatDate } from "@/lib/utils";
 const XP_TABLE = [
   ["Membuka modul pertama kali", `+${XP_RULES.lessonOpen}`],
   ["Menyelesaikan modul (mini quiz ≥ 60)", `+${XP_RULES.lessonComplete}`],
-  ["Soal mini quiz benar (pertama kali)", `+${XP_RULES.lessonQuizPerNewCorrect}`],
-  ["Soal latihan benar (pertama kali)", `+${XP_RULES.practicePerNewCorrect.mudah}/${XP_RULES.practicePerNewCorrect.sedang}/${XP_RULES.practicePerNewCorrect.sulit}`],
+  ["Soal mini quiz benar (sekali per soal; percobaan ke-1 100%, ke-2 50%)", `+${XP_RULES.lessonQuizPerNewCorrect}`],
+  ["Soal latihan benar (sekali per soal; percobaan ke-1 100%, ke-2 50%)", `+${XP_RULES.practicePerNewCorrect.mudah}/${XP_RULES.practicePerNewCorrect.sedang}/${XP_RULES.practicePerNewCorrect.sulit}`],
   ["Evaluasi akhir (maks. 3×/hari)", `+${XP_RULES.evaluationBase} + nilai/2`],
   ["Game (maks. 3×/game/hari)", `hingga +${XP_RULES.gameBase.sulit}`],
   ["Alat SPLDV Lab (1×/alat/hari)", `+${XP_RULES.labPerToolPerDay}`],
