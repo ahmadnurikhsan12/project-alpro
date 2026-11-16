@@ -1,0 +1,618 @@
+{
+  "_meta": "Direkam dari mesin progres commit 747fbf9 (sebelum kebijakan percobaan RMT). Hanya event lama tanpa `responses`.",
+  "initialAt": "2026-11-10T07:59:00.000Z",
+  "events": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "at": "2026-11-10T08:00:00.000Z",
+      "type": "lesson_open",
+      "lessonId": "m1"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "at": "2026-11-10T08:01:00.000Z",
+      "type": "lesson_quiz",
+      "lessonId": "m1",
+      "answers": {
+        "q-m1-1": "b",
+        "q-m1-2": "-5",
+        "q-m1-3": "true",
+        "q-m1-4": "3"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "at": "2026-11-10T08:02:00.000Z",
+      "type": "lesson_open",
+      "lessonId": "m4"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "at": "2026-11-10T08:03:00.000Z",
+      "type": "lesson_quiz",
+      "lessonId": "m4",
+      "answers": {
+        "q-m4-1": "a",
+        "q-m4-2": "b",
+        "q-m4-3": "true",
+        "q-m4-4": "zzz"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "at": "2026-11-10T08:04:00.000Z",
+      "type": "practice",
+      "difficulty": "mudah",
+      "questionIds": [
+        "p-m-01",
+        "p-m-02",
+        "p-m-03",
+        "p-m-04",
+        "p-m-12"
+      ],
+      "answers": {
+        "p-m-01": "b",
+        "p-m-02": "true",
+        "p-m-03": "6",
+        "p-m-12": "12",
+        "p-m-04": "false"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000006",
+      "at": "2026-11-10T08:05:00.000Z",
+      "type": "practice",
+      "difficulty": "mudah",
+      "questionIds": [
+        "p-m-01",
+        "p-m-05",
+        "p-m-06"
+      ],
+      "answers": {
+        "p-m-01": "b",
+        "p-m-05": "a",
+        "p-m-06": "a"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000007",
+      "at": "2026-11-10T08:06:00.000Z",
+      "type": "practice",
+      "difficulty": "sedang",
+      "questionIds": [
+        "p-s-10",
+        "p-s-11",
+        "p-s-12"
+      ],
+      "answers": {
+        "p-s-10": "1500",
+        "p-s-11": "15",
+        "p-s-12": "a"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000008",
+      "at": "2026-11-10T08:07:00.000Z",
+      "type": "practice",
+      "difficulty": "sulit",
+      "questionIds": [
+        "p-h-08",
+        "p-h-01"
+      ],
+      "answers": {
+        "p-h-08": "10000",
+        "p-h-01": "9,9"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000009",
+      "at": "2026-11-10T08:08:00.000Z",
+      "type": "evaluation",
+      "questionIds": [
+        "e01",
+        "e02",
+        "e03",
+        "e04",
+        "e05"
+      ],
+      "answers": {},
+      "durationSec": 120,
+      "result": {
+        "correct": 4,
+        "total": 5,
+        "score": 80
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "at": "2026-11-10T08:09:00.000Z",
+      "type": "game",
+      "gameId": "tebak-nilai",
+      "difficulty": "sedang",
+      "score": 200,
+      "correct": 2,
+      "total": 3,
+      "durationSec": 90
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000011",
+      "at": "2026-11-10T08:10:00.000Z",
+      "type": "lab",
+      "tool": "graph"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000012",
+      "at": "2026-11-10T08:11:00.000Z",
+      "type": "lab",
+      "tool": "elimination"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000013",
+      "at": "2026-11-10T08:12:00.000Z",
+      "type": "lab",
+      "tool": "elimination"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000014",
+      "at": "2026-11-10T08:13:00.000Z",
+      "type": "lab",
+      "tool": "checker"
+    }
+  ],
+  "expectedSteps": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "accepted": true,
+      "xpGained": 5,
+      "newAchievements": [],
+      "xpAfter": 5
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "accepted": true,
+      "xpGained": 80,
+      "newAchievements": [
+        "pemula-spldv"
+      ],
+      "xpAfter": 85
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "accepted": true,
+      "xpGained": 5,
+      "newAchievements": [],
+      "xpAfter": 90
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "accepted": true,
+      "xpGained": 55,
+      "newAchievements": [],
+      "xpAfter": 145
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "accepted": true,
+      "xpGained": 45,
+      "newAchievements": [],
+      "xpAfter": 190
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000006",
+      "accepted": true,
+      "xpGained": 25,
+      "newAchievements": [],
+      "xpAfter": 215
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000007",
+      "accepted": true,
+      "xpGained": 50,
+      "newAchievements": [],
+      "xpAfter": 265
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000008",
+      "accepted": true,
+      "xpGained": 75,
+      "newAchievements": [
+        "penakluk-soal-cerita"
+      ],
+      "xpAfter": 340
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000009",
+      "accepted": true,
+      "xpGained": 100,
+      "newAchievements": [
+        "lulus-evaluasi"
+      ],
+      "xpAfter": 440
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "accepted": true,
+      "xpGained": 30,
+      "newAchievements": [],
+      "xpAfter": 470
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000011",
+      "accepted": true,
+      "xpGained": 15,
+      "newAchievements": [],
+      "xpAfter": 485
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000012",
+      "accepted": true,
+      "xpGained": 15,
+      "newAchievements": [],
+      "xpAfter": 500
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000013",
+      "accepted": false,
+      "xpGained": 0,
+      "newAchievements": [],
+      "xpAfter": 500
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000014",
+      "accepted": true,
+      "xpGained": 45,
+      "newAchievements": [
+        "penjelajah-lab"
+      ],
+      "xpAfter": 545
+    }
+  ],
+  "finalState": {
+    "version": 1,
+    "xp": 545,
+    "lessons": {
+      "m1": {
+        "lessonId": "m1",
+        "status": "completed",
+        "openedAt": "2026-11-10T08:00:00.000Z",
+        "completedAt": "2026-11-10T08:01:00.000Z",
+        "bestQuizScore": 100
+      },
+      "m4": {
+        "lessonId": "m4",
+        "status": "completed",
+        "openedAt": "2026-11-10T08:02:00.000Z",
+        "completedAt": "2026-11-10T08:03:00.000Z",
+        "bestQuizScore": 75
+      }
+    },
+    "achievements": {
+      "pemula-spldv": "2026-11-10T08:01:00.000Z",
+      "penakluk-soal-cerita": "2026-11-10T08:07:00.000Z",
+      "lulus-evaluasi": "2026-11-10T08:08:00.000Z",
+      "penjelajah-lab": "2026-11-10T08:13:00.000Z"
+    },
+    "counters": {
+      "rewardedQuestions": [
+        "lesson:q-m1-1",
+        "lesson:q-m1-2",
+        "lesson:q-m1-3",
+        "lesson:q-m1-4",
+        "lesson:q-m4-1",
+        "lesson:q-m4-2",
+        "lesson:q-m4-3",
+        "p-m-01",
+        "p-m-02",
+        "p-m-03",
+        "p-m-12",
+        "p-m-05",
+        "p-m-06",
+        "p-s-10",
+        "p-s-11",
+        "p-s-12",
+        "p-h-08"
+      ],
+      "labTools": [
+        "graph",
+        "elimination",
+        "checker"
+      ],
+      "gamesBest": {
+        "tebak-nilai": 67
+      },
+      "practiceSessions": 4,
+      "evaluations": 1,
+      "bestEvaluation": 80,
+      "lastEvaluation": 80,
+      "answered": 26,
+      "correctAnswers": 22,
+      "daily": {
+        "2026-11-10:practice": 4,
+        "2026-11-10:evaluation": 1,
+        "2026-11-10:game:tebak-nilai": 1,
+        "2026-11-10:lab:graph": 1,
+        "2026-11-10:lab:elimination": 1,
+        "2026-11-10:lab:checker": 1
+      }
+    },
+    "attempts": [
+      {
+        "id": "00000000-0000-4000-8000-000000000010",
+        "kind": "game",
+        "refId": "tebak-nilai",
+        "title": "Tebak Nilai Variabel",
+        "score": 67,
+        "rawScore": 200,
+        "correct": 2,
+        "total": 3,
+        "xp": 30,
+        "difficulty": "sedang",
+        "createdAt": "2026-11-10T08:09:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000009",
+        "kind": "evaluation",
+        "refId": "evaluasi-akhir",
+        "title": "Evaluasi Akhir SPLDV",
+        "score": 80,
+        "correct": 4,
+        "total": 5,
+        "xp": 50,
+        "createdAt": "2026-11-10T08:08:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000008",
+        "kind": "practice",
+        "refId": "latihan-sulit",
+        "title": "Latihan Sulit",
+        "score": 50,
+        "correct": 1,
+        "total": 2,
+        "xp": 25,
+        "difficulty": "sulit",
+        "createdAt": "2026-11-10T08:07:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000007",
+        "kind": "practice",
+        "refId": "latihan-sedang",
+        "title": "Latihan Sedang",
+        "score": 100,
+        "correct": 3,
+        "total": 3,
+        "xp": 50,
+        "difficulty": "sedang",
+        "createdAt": "2026-11-10T08:06:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000006",
+        "kind": "practice",
+        "refId": "latihan-mudah",
+        "title": "Latihan Mudah",
+        "score": 100,
+        "correct": 3,
+        "total": 3,
+        "xp": 25,
+        "difficulty": "mudah",
+        "createdAt": "2026-11-10T08:05:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000005",
+        "kind": "practice",
+        "refId": "latihan-mudah",
+        "title": "Latihan Mudah",
+        "score": 80,
+        "correct": 4,
+        "total": 5,
+        "xp": 45,
+        "difficulty": "mudah",
+        "createdAt": "2026-11-10T08:04:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000004",
+        "kind": "lesson_quiz",
+        "refId": "m4",
+        "title": "Mini Quiz: Konsep Metode Eliminasi",
+        "score": 75,
+        "correct": 3,
+        "total": 4,
+        "xp": 55,
+        "createdAt": "2026-11-10T08:03:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "kind": "lesson_quiz",
+        "refId": "m1",
+        "title": "Mini Quiz: Persamaan Linear Dua Variabel",
+        "score": 100,
+        "correct": 4,
+        "total": 4,
+        "xp": 60,
+        "createdAt": "2026-11-10T08:01:00.000Z"
+      }
+    ],
+    "activity": [
+      {
+        "id": "00000000-0000-4000-8000-000000000014:ach:penjelajah-lab",
+        "type": "achievement",
+        "refId": "penjelajah-lab",
+        "title": "Pencapaian: Penjelajah Lab",
+        "detail": "Mencoba ketiga alat di SPLDV Lab.",
+        "xp": 30,
+        "createdAt": "2026-11-10T08:13:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000014",
+        "type": "lab",
+        "refId": "checker",
+        "title": "SPLDV Lab: Uji Pasangan Nilai",
+        "detail": "Menyelesaikan eksplorasi",
+        "xp": 15,
+        "createdAt": "2026-11-10T08:13:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000012",
+        "type": "lab",
+        "refId": "elimination",
+        "title": "SPLDV Lab: Simulasi Eliminasi",
+        "detail": "Menyelesaikan eksplorasi",
+        "xp": 15,
+        "createdAt": "2026-11-10T08:11:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000011",
+        "type": "lab",
+        "refId": "graph",
+        "title": "SPLDV Lab: Grafik SPLDV",
+        "detail": "Menyelesaikan eksplorasi",
+        "xp": 15,
+        "createdAt": "2026-11-10T08:10:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000010:level:4",
+        "type": "level_up",
+        "refId": "4",
+        "title": "Naik ke Level 4",
+        "detail": "Penyusun Model",
+        "xp": 0,
+        "createdAt": "2026-11-10T08:09:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000010",
+        "type": "game",
+        "refId": "tebak-nilai",
+        "title": "Bermain Tebak Nilai Variabel",
+        "detail": "200 poin (Sedang)",
+        "xp": 30,
+        "createdAt": "2026-11-10T08:09:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000009:ach:lulus-evaluasi",
+        "type": "achievement",
+        "refId": "lulus-evaluasi",
+        "title": "Pencapaian: Lulus Evaluasi",
+        "detail": "Meraih nilai minimal 75 pada Evaluasi Akhir.",
+        "xp": 50,
+        "createdAt": "2026-11-10T08:08:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000009",
+        "type": "evaluation",
+        "refId": "evaluasi-akhir",
+        "title": "Evaluasi Akhir SPLDV",
+        "detail": "Nilai 80 (4/5 benar)",
+        "xp": 50,
+        "createdAt": "2026-11-10T08:08:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000008:ach:penakluk-soal-cerita",
+        "type": "achievement",
+        "refId": "penakluk-soal-cerita",
+        "title": "Pencapaian: Penakluk Soal Cerita",
+        "detail": "Menjawab benar 5 soal cerita berbeda di Latihan.",
+        "xp": 50,
+        "createdAt": "2026-11-10T08:07:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000008",
+        "type": "practice",
+        "refId": "latihan-sulit",
+        "title": "Latihan Sulit",
+        "detail": "1/2 benar (nilai 50)",
+        "xp": 25,
+        "createdAt": "2026-11-10T08:07:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000007:level:3",
+        "type": "level_up",
+        "refId": "3",
+        "title": "Naik ke Level 3",
+        "detail": "Pengamat Variabel",
+        "xp": 0,
+        "createdAt": "2026-11-10T08:06:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000007",
+        "type": "practice",
+        "refId": "latihan-sedang",
+        "title": "Latihan Sedang",
+        "detail": "3/3 benar (nilai 100)",
+        "xp": 50,
+        "createdAt": "2026-11-10T08:06:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000006",
+        "type": "practice",
+        "refId": "latihan-mudah",
+        "title": "Latihan Mudah",
+        "detail": "3/3 benar (nilai 100)",
+        "xp": 25,
+        "createdAt": "2026-11-10T08:05:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000005",
+        "type": "practice",
+        "refId": "latihan-mudah",
+        "title": "Latihan Mudah",
+        "detail": "4/5 benar (nilai 80)",
+        "xp": 45,
+        "createdAt": "2026-11-10T08:04:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000004:level:2",
+        "type": "level_up",
+        "refId": "2",
+        "title": "Naik ke Level 2",
+        "detail": "Penjelajah Angka",
+        "xp": 0,
+        "createdAt": "2026-11-10T08:03:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000004",
+        "type": "lesson_complete",
+        "refId": "m4",
+        "title": "Menyelesaikan Konsep Metode Eliminasi",
+        "detail": "3/4 benar (nilai 75)",
+        "xp": 55,
+        "createdAt": "2026-11-10T08:03:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "type": "lesson_open",
+        "refId": "m4",
+        "title": "Membuka Konsep Metode Eliminasi",
+        "detail": "Mulai mempelajari modul",
+        "xp": 5,
+        "createdAt": "2026-11-10T08:02:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000002:ach:pemula-spldv",
+        "type": "achievement",
+        "refId": "pemula-spldv",
+        "title": "Pencapaian: Pemula SPLDV",
+        "detail": "Menyelesaikan modul pertama.",
+        "xp": 20,
+        "createdAt": "2026-11-10T08:01:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "type": "lesson_complete",
+        "refId": "m1",
+        "title": "Menyelesaikan Persamaan Linear Dua Variabel",
+        "detail": "4/4 benar (nilai 100)",
+        "xp": 60,
+        "createdAt": "2026-11-10T08:01:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000001",
+        "type": "lesson_open",
+        "refId": "m1",
+        "title": "Membuka Persamaan Linear Dua Variabel",
+        "detail": "Mulai mempelajari modul",
+        "xp": 5,
+        "createdAt": "2026-11-10T08:00:00.000Z"
+      }
+    ],
+    "updatedAt": "2026-11-10T08:13:00.000Z"
+  }
+}

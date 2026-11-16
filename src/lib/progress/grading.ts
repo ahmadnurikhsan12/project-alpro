@@ -1,9 +1,11 @@
 import { GAME_BY_ID } from "@/content/games";
 import { LESSON_BY_ID } from "@/content/lessons";
 import { PRACTICE_BY_ID } from "@/content/practice";
-import { gradeSet } from "@/lib/questions/grade";
+import { gradeAnswer, isAnswerEmpty } from "@/lib/questions/grade";
 import type { Question } from "@/lib/questions/types";
-import { LAB_TOOLS, type GradedEvent, type RawEvent } from "./types";
+import { REFLECTION_PROMPTS, validateReflection, type ReflectionPrompt } from "@/lib/tutor/reflection-prompts";
+import { ATTEMPT_RULES } from "./gamification";
+import { LAB_TOOLS, type GradedEvent, type GradedQuestion, type QuestionResponse, type RawEvent } from "./types";
 
 export class EventValidationError extends Error {}
 
@@ -19,19 +21,61 @@ function collect(ids: string[], bank: Record<string, Question>): Question[] {
   });
 }
 
-function graded(answers: Record<string, string>, questions: Question[]) {
-  const g = gradeSet(questions, answers);
+/**
+ * Menilai satu soal dari daftar percobaannya. Setiap jawaban dinilai ulang di sini
+ * (klaim "benar pada percobaan ke-n" dari klien tidak dipercaya).
+ * - Jawaban kosong tidak dihitung sebagai percobaan.
+ * - Jumlah jawaban dibatasi menurut tipe soal (ATTEMPT_RULES.limitsPerSession).
+ * - Pemrosesan berhenti pada jawaban benar pertama.
+ */
+export function gradeQuestionAttempts(q: Question, submitted: readonly (string | undefined)[], hints = 0): GradedQuestion {
+  const limit = ATTEMPT_RULES.limitsPerSession[q.type];
+  const answers = submitted.filter((a): a is string => typeof a === "string" && !isAnswerEmpty(q, a)).slice(0, limit);
+  const results: boolean[] = [];
+  let solvedAt: number | null = null;
+  for (const a of answers) {
+    const ok = gradeAnswer(q, a);
+    results.push(ok);
+    if (ok) {
+      solvedAt = results.length;
+      break;
+    }
+  }
   return {
-    correct: g.correct,
-    total: g.total,
-    score: g.score,
-    correctIds: questions.filter((q) => g.results[q.id]).map((q) => q.id),
+    id: q.id,
+    attempts: results,
+    solvedAt,
+    hints: Math.max(0, Math.min(ATTEMPT_RULES.maxHints, Math.trunc(Number.isFinite(hints) ? hints : 0))),
+    difficulty: q.difficulty,
+  };
+}
+
+/**
+ * Menilai satu sesi soal. Jika klien mengirim `responses`, itulah sumber percobaan;
+ * jika tidak (event lama), jawaban akhir tiap soal dianggap satu percobaan.
+ */
+function gradeSession(questions: Question[], answers: Record<string, string>, responses?: Record<string, QuestionResponse>) {
+  const perQuestion = questions.map((q) => {
+    const r = responses?.[q.id];
+    return gradeQuestionAttempts(q, r?.attempts?.length ? r.attempts : [answers[q.id]], r?.hints ?? 0);
+  });
+  const solved = perQuestion.filter((g) => g.solvedAt !== null);
+  const total = questions.length;
+  return {
+    kind: "graded" as const,
+    correct: solved.length,
+    total,
+    score: total ? Math.round((solved.length / total) * 100) : 0,
+    correctIds: solved.map((g) => g.id),
+    perQuestion,
   };
 }
 
 export interface GradeOptions {
   /** Bank evaluasi (hanya tersedia di server). Jika kosong, hasil evaluasi diambil dari event.result. */
   evaluationBank?: Record<string, Question>;
+  /** Registri prompt refleksi; bawaan: REFLECTION_PROMPTS. */
+  reflectionRegistry?: readonly ReflectionPrompt[];
 }
 
 /**
@@ -47,18 +91,19 @@ export function gradeEvent(event: RawEvent, opts: GradeOptions = {}): GradedEven
     case "lesson_quiz": {
       const lesson = LESSON_BY_ID[event.lessonId];
       if (!lesson) throw new EventValidationError("Materi tidak dikenal.");
-      return { ...event, kind: "graded", ...graded(event.answers, lesson.quiz) };
+      return { ...event, ...gradeSession(lesson.quiz, event.answers, event.responses) };
     }
 
     case "practice": {
       const qs = collect(event.questionIds, PRACTICE_BY_ID);
-      return { ...event, kind: "graded", ...graded(event.answers, qs) };
+      return { ...event, ...gradeSession(qs, event.answers, event.responses) };
     }
 
     case "evaluation": {
       if (opts.evaluationBank) {
+        // Evaluasi tidak memiliki percobaan ulang atau petunjuk: satu jawaban per soal.
         const qs = collect(event.questionIds, opts.evaluationBank);
-        return { ...event, kind: "graded", ...graded(event.answers, qs) };
+        return { ...event, ...gradeSession(qs, event.answers) };
       }
       const r = event.result;
       if (!r || r.total !== event.questionIds.length || r.correct < 0 || r.correct > r.total) {
@@ -71,6 +116,7 @@ export function gradeEvent(event: RawEvent, opts: GradeOptions = {}): GradedEven
         total: r.total,
         score: r.total ? Math.round((r.correct / r.total) * 100) : 0,
         correctIds: [],
+        perQuestion: [],
       };
     }
 
@@ -92,5 +138,11 @@ export function gradeEvent(event: RawEvent, opts: GradeOptions = {}): GradedEven
     case "lab":
       if (!LAB_TOOLS.includes(event.tool)) throw new EventValidationError("Alat lab tidak dikenal.");
       return { ...event, kind: "lab" };
+
+    case "reflection": {
+      const problem = validateReflection(opts.reflectionRegistry ?? REFLECTION_PROMPTS, event);
+      if (problem) throw new EventValidationError(problem);
+      return { ...event, kind: "reflection" };
+    }
   }
 }

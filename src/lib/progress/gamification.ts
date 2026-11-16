@@ -51,6 +51,34 @@ export const XP_RULES = {
   labPerToolPerDay: 15,
 } as const;
 
+/**
+ * Kebijakan percobaan untuk Latihan & Mini Quiz (pilot RMT).
+ *
+ * - Percobaan dihitung kumulatif per soal sepanjang waktu.
+ * - XP soal diberikan SEKALI, pada percobaan pertama kali soal itu dijawab benar:
+ *   percobaan ke-1 = 100%, ke-2 = 50%, ke-3 dst = 0%.
+ * - Jawaban salah dan petunjuk TIDAK mengurangi XP.
+ * - Batas percobaan per soal dalam satu sesi bergantung tipe soal: pilihan ganda &
+ *   Benar/Salah mudah ditebak, sehingga percobaan ulangnya dibatasi.
+ */
+export const ATTEMPT_RULES = {
+  /** Pengali XP menurut nomor percobaan (indeks 0 = percobaan ke-1). Selebihnya 0. */
+  multipliers: [1, 0.5] as readonly number[],
+  /** Batas jawaban yang diproses per soal dalam satu sesi. */
+  limitsPerSession: { number: 3, pair: 3, mcq: 2, tf: 1 } as Record<"number" | "pair" | "mcq" | "tf", number>,
+  /** Banyak petunjuk bertingkat (L1–L4) yang dapat dibuka per soal. */
+  maxHints: 4,
+} as const;
+
+export function attemptMultiplier(attemptNo: number): number {
+  return ATTEMPT_RULES.multipliers[attemptNo - 1] ?? 0;
+}
+
+/** XP soal = basis × pengali percobaan, dibulatkan (0,5 ke atas). Tidak pernah negatif. */
+export function questionXp(base: number, attemptNo: number): number {
+  return Math.max(0, Math.round(base * attemptMultiplier(attemptNo)));
+}
+
 // ------------------------------------------------------------------ Achievements
 
 export interface AchievementDef {

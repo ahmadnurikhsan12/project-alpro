@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { applyEvent, createInitialState, MAX_ACTIVITY, MAX_ATTEMPTS } from "@/lib/progress/engine";
+import { applyEvent, createInitialState, MAX_ACTIVITY, MAX_ATTEMPTS, withCounterDefaults } from "@/lib/progress/engine";
 import { levelFromXp } from "@/lib/progress/gamification";
 import { gradeEvent } from "@/lib/progress/grading";
 import { replayEvents, toPersistDelta, type PersistDelta } from "@/lib/progress/replay";
@@ -41,7 +41,7 @@ export async function loadState(db: SupabaseClient, userId: string): Promise<Pro
     db.from("user_achievements").select("achievement_id, earned_at").eq("user_id", userId),
     db
       .from("quiz_attempts")
-      .select("id, kind, quiz_id, title, score, correct, total, xp, difficulty, created_at")
+      .select("id, kind, quiz_id, title, score, correct, total, xp, difficulty, detail, created_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(MAX_ATTEMPTS),
@@ -63,7 +63,7 @@ export async function loadState(db: SupabaseClient, userId: string): Promise<Pro
   const st = check(stats, "memuat statistik") as { xp: number; counters: Partial<Counters>; updated_at: string } | null;
   if (st) {
     state.xp = st.xp;
-    state.counters = { ...state.counters, ...(st.counters ?? {}) };
+    state.counters = withCounterDefaults(st.counters);
     state.updatedAt = st.updated_at;
   }
   for (const l of check(lessons, "memuat materi") ?? []) {
@@ -88,6 +88,8 @@ export async function loadState(db: SupabaseClient, userId: string): Promise<Pro
       total: q.total,
       xp: q.xp,
       difficulty: q.difficulty ?? undefined,
+      firstTry: q.detail?.firstTry ?? undefined,
+      detail: q.detail ?? undefined,
       createdAt: q.created_at,
     })),
     ...(check(games, "memuat riwayat game") ?? []).map((g) => ({
@@ -145,6 +147,7 @@ export async function persist(db: SupabaseClient, userId: string, state: Progres
           total: a.total,
           xp: a.xp,
           difficulty: a.difficulty ?? null,
+          detail: a.detail ?? null,
           created_at: a.createdAt,
         })),
         { onConflict: "user_id,id", ignoreDuplicates: true },
@@ -196,6 +199,21 @@ export async function persist(db: SupabaseClient, userId: string, state: Progres
       ),
     );
   }
+  if (delta.learning.length) {
+    ops.push(
+      db.from("learning_records").upsert(
+        delta.learning.map((l) => ({
+          id: l.id,
+          user_id: userId,
+          kind: l.kind,
+          ref_id: l.refId,
+          payload: l.payload,
+          created_at: l.createdAt,
+        })),
+        { onConflict: "user_id,id", ignoreDuplicates: true },
+      ),
+    );
+  }
   ops.push(
     db.from("user_stats").upsert({
       user_id: userId,
@@ -230,7 +248,7 @@ export async function recordEvent(db: SupabaseClient, userId: string, raw: RawEv
   const dup = await existingEventIds(db, userId, [raw.id]);
   if (dup.size) {
     const lvl = levelFromXp(state.xp).level;
-    return { state, accepted: false, xpGained: 0, levelBefore: lvl, levelAfter: lvl, newAchievements: [], delta: { lessons: [], attempt: null, activities: [], achievements: [] } };
+    return { state, accepted: false, xpGained: 0, levelBefore: lvl, levelAfter: lvl, newAchievements: [], delta: { lessons: [], attempt: null, activities: [], achievements: [], learning: [] } };
   }
   const result = applyEvent(state, gradeEvent(raw, { evaluationBank: EVALUATION_BY_ID }));
   if (result.accepted) await persist(db, userId, result.state, toPersistDelta(result));

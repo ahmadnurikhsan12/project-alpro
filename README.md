@@ -50,6 +50,7 @@ Next.js 15 (App Router) · TypeScript · Tailwind CSS 3 · Supabase (Auth + Post
 │  └─ middleware.ts               Penyegar sesi Supabase (tidak aktif tanpa konfigurasi)
 ├─ supabase/
 │  ├─ migrations/0001_init.sql    Skema tabel + RLS + trigger
+│  ├─ migrations/0002_rmt_pilot.sql  Tambahan pilot RMT (kolom detail + tabel learning_records)
 │  └─ seed.sql                    Data materi, soal, game, pencapaian (dibuat otomatis)
 ├─ scripts/generate-seed.ts       Pembuat seed.sql dari konten aplikasi
 ├─ tests/                         Unit test (Vitest)
@@ -92,7 +93,7 @@ Perintah lain:
 ## 6. Konfigurasi Supabase (untuk Email Mode)
 
 1. Buat proyek di [supabase.com](https://supabase.com).
-2. Buka **SQL Editor**, jalankan isi `supabase/migrations/0001_init.sql`, lalu jalankan `supabase/seed.sql`.
+2. Buka **SQL Editor**, jalankan **berurutan**: `supabase/migrations/0001_init.sql`, lalu `supabase/migrations/0002_rmt_pilot.sql`, lalu `supabase/seed.sql`. Migrasi `0002` hanya menambah (kolom nullable dan satu tabel baru), aman dijalankan berulang, dan **wajib sudah diterapkan sebelum Email Mode dipakai** karena kode aplikasi membaca/menulis kolom dan tabel tersebut.
 3. Buka **Project Settings → API**, salin ke `.env.local`:
    - `NEXT_PUBLIC_SUPABASE_URL` — Project URL
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — anon/publishable key

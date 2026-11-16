@@ -1,8 +1,21 @@
 import { GAME_BY_ID } from "@/content/games";
 import { LESSON_BY_ID } from "@/content/lessons";
-import { PRACTICE_BY_ID } from "@/content/practice";
-import { ACHIEVEMENTS, ACHIEVEMENT_BY_ID, levelFromXp, XP_RULES } from "./gamification";
-import type { ActivityRecord, ApplyResult, AttemptRecord, GradedEvent, LessonProgress, ProgressState } from "./types";
+import { REFLECTION_CONTEXT_LABEL } from "@/lib/tutor/reflection-prompts";
+import { ACHIEVEMENTS, ACHIEVEMENT_BY_ID, levelFromXp, questionXp, XP_RULES } from "./gamification";
+import type {
+  ActivityRecord,
+  ApplyResult,
+  AttemptDetail,
+  AttemptQuestionDetail,
+  AttemptRecord,
+  Counters,
+  GradedEvent,
+  GradedQuestion,
+  LearningRecord,
+  LessonProgress,
+  ProgressState,
+  QuestionStat,
+} from "./types";
 
 export const MAX_ATTEMPTS = 200;
 export const MAX_ACTIVITY = 300;
@@ -10,28 +23,54 @@ export const MAX_ACTIVITY = 300;
 const LAB_TITLE = { checker: "Uji Pasangan Nilai", elimination: "Simulasi Eliminasi", graph: "Grafik SPLDV" } as const;
 const DIFF_LABEL = { mudah: "Mudah", sedang: "Sedang", sulit: "Sulit" } as const;
 
+function createInitialCounters(): Counters {
+  return {
+    rewardedQuestions: [],
+    questionStats: {},
+    reflections: 0,
+    reflectionsSkipped: 0,
+    labTools: [],
+    gamesBest: {},
+    practiceSessions: 0,
+    evaluations: 0,
+    bestEvaluation: 0,
+    lastEvaluation: null,
+    answered: 0,
+    correctAnswers: 0,
+    daily: {},
+  };
+}
+
 export function createInitialState(now = new Date().toISOString()): ProgressState {
   return {
     version: 1,
     xp: 0,
     lessons: {},
     achievements: {},
-    counters: {
-      rewardedQuestions: [],
-      labTools: [],
-      gamesBest: {},
-      practiceSessions: 0,
-      evaluations: 0,
-      bestEvaluation: 0,
-      lastEvaluation: null,
-      answered: 0,
-      correctAnswers: 0,
-      daily: {},
-    },
+    counters: createInitialCounters(),
     attempts: [],
     activity: [],
     updatedAt: now,
   };
+}
+
+/** Melengkapi counters yang berasal dari versi aplikasi lama (field baru diberi nilai awal). */
+export function withCounterDefaults(c: Partial<Counters> | undefined): Counters {
+  const base = createInitialCounters();
+  const merged = { ...base, ...(c ?? {}) };
+  return {
+    ...merged,
+    rewardedQuestions: [...(c?.rewardedQuestions ?? [])],
+    questionStats: { ...(c?.questionStats ?? {}) },
+    labTools: [...(c?.labTools ?? [])],
+    gamesBest: { ...(c?.gamesBest ?? {}) },
+    daily: { ...(c?.daily ?? {}) },
+  };
+}
+
+/** Dipakai saat memuat state dari penyimpanan lokal/server agar field baru selalu ada. */
+export function normalizeState(s: ProgressState): ProgressState {
+  return { ...s, counters: withCounterDefaults(s.counters) };
 }
 
 const dayKey = (iso: string) => iso.slice(0, 10);
@@ -47,13 +86,7 @@ function clone(s: ProgressState): ProgressState {
     ...s,
     lessons: { ...s.lessons },
     achievements: { ...s.achievements },
-    counters: {
-      ...s.counters,
-      rewardedQuestions: [...s.counters.rewardedQuestions],
-      labTools: [...s.counters.labTools],
-      gamesBest: { ...s.counters.gamesBest },
-      daily: { ...s.counters.daily },
-    },
+    counters: withCounterDefaults(s.counters),
     attempts: [...s.attempts],
     activity: [...s.activity],
   };
@@ -71,6 +104,7 @@ export function applyEvent(prev: ProgressState, ev: GradedEvent): ApplyResult {
   const levelBefore = levelFromXp(prev.xp).level;
   const activities: ActivityRecord[] = [];
   const lessonsChanged: LessonProgress[] = [];
+  const learning: LearningRecord[] = [];
   let attempt: AttemptRecord | null = null;
   let xp = 0;
   let message: string | undefined;
@@ -81,19 +115,57 @@ export function applyEvent(prev: ProgressState, ev: GradedEvent): ApplyResult {
     return s.counters.daily[k];
   };
   const dailyCount = (key: string) => s.counters.daily[`${day}:${key}`] ?? 0;
-  const reward = (ids: string[], per: (id: string) => number) => {
-    let gained = 0;
-    for (const id of ids) {
-      if (!s.counters.rewardedQuestions.includes(id)) {
-        s.counters.rewardedQuestions.push(id);
-        gained += per(id);
-      }
-    }
-    return gained;
-  };
   const countAnswers = (correct: number, total: number) => {
     s.counters.answered += total;
     s.counters.correctAnswers += correct;
+  };
+
+  /** Statistik soal; soal yang sudah ada di daftar lama (tanpa statistik) dianggap sudah terjawab benar. */
+  const statFor = (key: string): QuestionStat => {
+    const existing = s.counters.questionStats[key];
+    if (existing) return existing;
+    if (s.counters.rewardedQuestions.includes(key)) {
+      return { attempts: 1, solvedAt: 1, xp: 0, hints: 0, independent: false, legacy: true };
+    }
+    return { attempts: 0, solvedAt: null, xp: 0, hints: 0, independent: false };
+  };
+
+  /**
+   * Kebijakan percobaan (ATTEMPT_RULES): XP sekali per soal pada percobaan pertama kali benar
+   * (100% / 50% / 0%), jawaban salah & petunjuk tidak mengurangi XP.
+   */
+  const rewardSession = (items: { key: string; base: number; q: GradedQuestion }[]) => {
+    let gained = 0;
+    let half = 0; // baru benar pada percobaan ke-2
+    let zeroNew = 0; // baru benar pada percobaan ke-3 dst. (0 XP)
+    let independent = 0;
+    const questions: Record<string, AttemptQuestionDetail> = {};
+    for (const { key, base, q } of items) {
+      const stat = { ...statFor(key) };
+      let sessionXp = 0;
+      let solvedAtCumulative: number | null = null;
+      for (const ok of q.attempts) {
+        stat.attempts += 1;
+        if (ok && stat.solvedAt === null) {
+          stat.solvedAt = stat.attempts;
+          sessionXp = questionXp(base, stat.attempts);
+          stat.xp = sessionXp;
+          stat.independent = stat.attempts === 1 && q.hints === 0;
+          solvedAtCumulative = stat.attempts;
+          if (!s.counters.rewardedQuestions.includes(key)) s.counters.rewardedQuestions.push(key);
+          if (sessionXp === 0) zeroNew += 1;
+          else if (stat.attempts === 2) half += 1;
+        }
+      }
+      stat.hints += q.hints;
+      s.counters.questionStats[key] = stat;
+      gained += sessionXp;
+      if (q.solvedAt === 1 && q.hints === 0) independent += 1;
+      questions[q.id] = { attempts: q.attempts.length, solvedAt: solvedAtCumulative, hints: q.hints, xp: sessionXp };
+    }
+    const total = items.length;
+    const detail: AttemptDetail = { firstTry: total ? Math.round((independent / total) * 100) : 0, questions };
+    return { gained, half, zeroNew, detail };
   };
 
   switch (ev.type) {
@@ -123,7 +195,8 @@ export function applyEvent(prev: ProgressState, ev: GradedEvent): ApplyResult {
       const lp: LessonProgress = existing
         ? { ...existing }
         : { lessonId: ev.lessonId, status: "in_progress", openedAt: at, completedAt: null, bestQuizScore: 0 };
-      xp = reward(ev.correctIds.map((id) => `lesson:${id}`), () => XP_RULES.lessonQuizPerNewCorrect);
+      const rewarded = rewardSession(ev.perQuestion.map((q) => ({ key: `lesson:${q.id}`, base: XP_RULES.lessonQuizPerNewCorrect, q })));
+      xp = rewarded.gained;
       lp.bestQuizScore = Math.max(lp.bestQuizScore, ev.score);
       const passed = ev.score >= XP_RULES.lessonPassScore;
       const newlyCompleted = passed && lp.status !== "completed";
@@ -144,6 +217,8 @@ export function applyEvent(prev: ProgressState, ev: GradedEvent): ApplyResult {
         correct: ev.correct,
         total: ev.total,
         xp,
+        firstTry: rewarded.detail.firstTry,
+        detail: rewarded.detail,
         createdAt: at,
       };
       activities.push({
@@ -151,7 +226,9 @@ export function applyEvent(prev: ProgressState, ev: GradedEvent): ApplyResult {
         type: newlyCompleted ? "lesson_complete" : "lesson_quiz",
         refId: ev.lessonId,
         title: newlyCompleted ? `Menyelesaikan ${lesson.title}` : `Mini Quiz ${lesson.title}`,
-        detail: `${ev.correct}/${ev.total} benar (nilai ${ev.score})${passed ? "" : " — belum lulus, minimal 60"}`,
+        detail:
+          `${ev.correct}/${ev.total} benar (nilai ${ev.score})${passed ? "" : " — belum lulus, minimal 60"}` +
+          (rewarded.detail.firstTry !== ev.score ? ` · mandiri ${rewarded.detail.firstTry}%` : ""),
         xp,
         createdAt: at,
       });
@@ -160,7 +237,8 @@ export function applyEvent(prev: ProgressState, ev: GradedEvent): ApplyResult {
     }
 
     case "practice": {
-      xp = reward(ev.correctIds, (id) => XP_RULES.practicePerNewCorrect[PRACTICE_BY_ID[id]?.difficulty ?? "mudah"]);
+      const rewarded = rewardSession(ev.perQuestion.map((q) => ({ key: q.id, base: XP_RULES.practicePerNewCorrect[q.difficulty], q })));
+      xp = rewarded.gained;
       if (ev.correct > 0 && dailyCount("practice") < XP_RULES.practiceSessionBonusDailyLimit) {
         xp += XP_RULES.practiceSessionBonus;
       }
@@ -177,6 +255,8 @@ export function applyEvent(prev: ProgressState, ev: GradedEvent): ApplyResult {
         total: ev.total,
         xp,
         difficulty: ev.difficulty,
+        firstTry: rewarded.detail.firstTry,
+        detail: rewarded.detail,
         createdAt: at,
       };
       activities.push({
@@ -184,11 +264,17 @@ export function applyEvent(prev: ProgressState, ev: GradedEvent): ApplyResult {
         type: "practice",
         refId: attempt.refId,
         title: attempt.title,
-        detail: `${ev.correct}/${ev.total} benar (nilai ${ev.score})`,
+        detail: `${ev.correct}/${ev.total} benar (nilai ${ev.score})` + (rewarded.detail.firstTry !== ev.score ? ` · mandiri ${rewarded.detail.firstTry}%` : ""),
         xp,
         createdAt: at,
       });
-      if (xp === 0 && ev.correct > 0) message = "Soal ini sudah pernah memberi XP. Coba soal lain untuk XP baru!";
+      if (rewarded.zeroNew > 0) {
+        message = "Soal yang baru benar pada percobaan ke-3 atau lebih tidak memberi XP tambahan, tetapi tetap tercatat benar.";
+      } else if (rewarded.half > 0) {
+        message = "Benar pada percobaan ke-2 memberi 50% XP.";
+      } else if (xp === 0 && ev.correct > 0) {
+        message = "Soal ini sudah pernah memberi XP. Coba soal lain untuk XP baru!";
+      }
       break;
     }
 
@@ -252,6 +338,15 @@ export function applyEvent(prev: ProgressState, ev: GradedEvent): ApplyResult {
         xp,
         createdAt: at,
       });
+      if (ev.la) {
+        learning.push({
+          id: ev.id,
+          kind: "game_la",
+          refId: ev.gameId,
+          payload: { difficulty: ev.difficulty, score: ev.score, percent: ev.percent, metrics: ev.la },
+          createdAt: at,
+        });
+      }
       if (xp === 0 && plays >= XP_RULES.gameDailyLimitPerGame) {
         message = `XP untuk ${meta.title} hari ini sudah maksimal (${XP_RULES.gameDailyLimitPerGame} permainan). Skor tetap tercatat.`;
       }
@@ -260,21 +355,47 @@ export function applyEvent(prev: ProgressState, ev: GradedEvent): ApplyResult {
 
     case "lab": {
       const key = `lab:${ev.tool}`;
-      if (dailyCount(key) > 0) {
-        if (s.counters.labTools.includes(ev.tool)) {
-          return { state: prev, accepted: false, xpGained: 0, levelBefore, levelAfter: levelBefore, newAchievements: [], delta: emptyDelta() };
-        }
+      const repeatToday = dailyCount(key) > 0 && s.counters.labTools.includes(ev.tool);
+      // Perilaku lama: pengulangan di hari yang sama ditolak. Jika ada data Learning Activity
+      // (`la`), pengulangan tetap dicatat sebagai aktivitas belajar, tetapi tanpa XP.
+      if (repeatToday && !ev.la) {
+        return { state: prev, accepted: false, xpGained: 0, levelBefore, levelAfter: levelBefore, newAchievements: [], delta: emptyDelta() };
       }
-      bump(key);
-      if (!s.counters.labTools.includes(ev.tool)) s.counters.labTools.push(ev.tool);
-      xp = XP_RULES.labPerToolPerDay;
+      if (!repeatToday) {
+        bump(key);
+        if (!s.counters.labTools.includes(ev.tool)) s.counters.labTools.push(ev.tool);
+        xp = XP_RULES.labPerToolPerDay;
+      }
       activities.push({
         id: ev.id,
         type: "lab",
         refId: ev.tool,
         title: `SPLDV Lab: ${LAB_TITLE[ev.tool]}`,
-        detail: "Menyelesaikan eksplorasi",
+        detail: repeatToday ? "Mengulang eksplorasi" : "Menyelesaikan eksplorasi",
         xp,
+        createdAt: at,
+      });
+      if (ev.la) learning.push({ id: ev.id, kind: "lab_la", refId: ev.tool, payload: { metrics: ev.la }, createdAt: at });
+      break;
+    }
+
+    case "reflection": {
+      if (ev.skipped) s.counters.reflectionsSkipped += 1;
+      else s.counters.reflections += 1;
+      activities.push({
+        id: ev.id,
+        type: "reflection",
+        refId: ev.refId,
+        title: `Refleksi: ${REFLECTION_CONTEXT_LABEL[ev.context]}`,
+        detail: ev.skipped ? "Dilewati" : `${Object.keys(ev.responses).length} jawaban`,
+        xp: 0,
+        createdAt: at,
+      });
+      learning.push({
+        id: ev.id,
+        kind: "reflection",
+        refId: ev.refId,
+        payload: { context: ev.context, responses: ev.responses, skipped: !!ev.skipped },
         createdAt: at,
       });
       break;
@@ -330,13 +451,13 @@ export function applyEvent(prev: ProgressState, ev: GradedEvent): ApplyResult {
     levelBefore,
     levelAfter,
     newAchievements,
-    delta: { lessons: lessonsChanged, attempt, activities, achievements: achievementRows },
+    delta: { lessons: lessonsChanged, attempt, activities, achievements: achievementRows, learning },
     message,
   };
 }
 
 function emptyDelta(): ApplyResult["delta"] {
-  return { lessons: [], attempt: null, activities: [], achievements: [] };
+  return { lessons: [], attempt: null, activities: [], achievements: [], learning: [] };
 }
 
 // ------------------------------------------------------------------ Statistik turunan

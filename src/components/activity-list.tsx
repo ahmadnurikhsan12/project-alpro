@@ -10,6 +10,7 @@ const META: Record<ActivityType, { icon: typeof BookOpen; cls: string; label: st
   evaluation: { icon: ClipboardCheck, cls: "bg-sky-50 text-sky-600", label: "Evaluasi" },
   game: { icon: Gamepad2, cls: "bg-orange-50 text-orange-600", label: "Game" },
   lab: { icon: FlaskConical, cls: "bg-grape-50 text-grape-600", label: "Lab" },
+  reflection: { icon: PencilLine, cls: "bg-sky-50 text-sky-600", label: "Refleksi" },
   achievement: { icon: Award, cls: "bg-amber-50 text-amber-600", label: "Pencapaian" },
   level_up: { icon: TrendingUp, cls: "bg-grape-50 text-grape-600", label: "Level" },
 };

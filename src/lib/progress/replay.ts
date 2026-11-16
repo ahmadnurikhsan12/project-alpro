@@ -1,6 +1,6 @@
 import { applyEvent } from "./engine";
 import { EventValidationError, gradeEvent, type GradeOptions } from "./grading";
-import type { ActivityRecord, ApplyResult, AttemptRecord, LessonProgress, ProgressState, RawEvent } from "./types";
+import type { ActivityRecord, ApplyResult, AttemptRecord, LearningRecord, LessonProgress, ProgressState, RawEvent } from "./types";
 
 /** Semua perubahan yang perlu ditulis ke database. */
 export interface PersistDelta {
@@ -8,6 +8,7 @@ export interface PersistDelta {
   attempts: AttemptRecord[];
   activities: ActivityRecord[];
   achievements: { id: string; earnedAt: string }[];
+  learning: LearningRecord[];
 }
 
 export function toPersistDelta(r: ApplyResult): PersistDelta {
@@ -16,6 +17,7 @@ export function toPersistDelta(r: ApplyResult): PersistDelta {
     attempts: r.delta.attempt ? [r.delta.attempt] : [],
     activities: r.delta.activities,
     achievements: r.delta.achievements,
+    learning: r.delta.learning,
   };
 }
 
@@ -61,7 +63,7 @@ export function replayEvents(
   let xpGained = 0;
   const newAchievements: string[] = [];
   const lessons = new Map<string, LessonProgress>();
-  const delta: PersistDelta = { lessons: [], attempts: [], activities: [], achievements: [] };
+  const delta: PersistDelta = { lessons: [], attempts: [], activities: [], achievements: [], learning: [] };
 
   for (const ev of ordered) {
     try {
@@ -75,6 +77,7 @@ export function replayEvents(
       if (r.delta.attempt) delta.attempts.push(r.delta.attempt);
       delta.activities.push(...r.delta.activities);
       delta.achievements.push(...r.delta.achievements);
+      delta.learning.push(...r.delta.learning);
     } catch (err) {
       if (err instanceof EventValidationError) rejected++;
       else throw err;

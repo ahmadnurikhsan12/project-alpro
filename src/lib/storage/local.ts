@@ -1,6 +1,6 @@
 "use client";
 
-import { createInitialState } from "@/lib/progress/engine";
+import { createInitialState, normalizeState } from "@/lib/progress/engine";
 import type { ProgressState, RawEvent } from "@/lib/progress/types";
 
 const GUEST_KEY = "mathquest.guest.v1";
@@ -47,9 +47,10 @@ export function loadGuest(): GuestData {
   const data = read<GuestData>(GUEST_KEY);
   if (data && isValidState(data.state)) {
     // isi field baru jika versi data lama
+    // normalizeState melengkapi field baru dari versi aplikasi lebih baru (progres lama tetap utuh)
     const fresh = createInitialState();
     return {
-      state: { ...fresh, ...data.state, counters: { ...fresh.counters, ...data.state.counters } },
+      state: normalizeState({ ...fresh, ...data.state }),
       events: Array.isArray(data.events) ? data.events : [],
       displayName: typeof data.displayName === "string" ? data.displayName : "",
     };
@@ -93,7 +94,7 @@ export function savePending(userId: string, events: RawEvent[]) {
 
 export function loadCloudCache(userId: string): CloudCache | null {
   const c = read<CloudCache>(CLOUD_KEY);
-  return c && c.userId === userId && isValidState(c.state) ? c : null;
+  return c && c.userId === userId && isValidState(c.state) ? { ...c, state: normalizeState(c.state) } : null;
 }
 
 export function saveCloudCache(c: CloudCache) {
