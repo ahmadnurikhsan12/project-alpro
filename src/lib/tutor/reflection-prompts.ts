@@ -39,8 +39,21 @@ export type ReflectionValue = string | number;
 
 export const MAX_REFLECTION_RESPONSES = 12;
 
-/** Diisi pada Tahap 3–4. */
-export const REFLECTION_PROMPTS: readonly ReflectionPrompt[] = [];
+/**
+ * Tahap 3: prompt Lab (Simulasi Eliminasi dan Uji Pasangan). Id dan opsi bersifat STABIL
+ * (dipakai sebagai data); teks tampilan ada di src/content/reflection-copy.ts.
+ * Tahap 4 menambahkan prompt Tebak Nilai, Eliminasi Kilat, dan materi.
+ */
+export const REFLECTION_PROMPTS: readonly ReflectionPrompt[] = [
+  { id: "bagian_menantang", context: "lab_elimination", kind: "choice", options: ["analisis", "pilih_variabel", "pengali", "operasi", "hitung", "grafik"] },
+  { id: "alasan_variabel", context: "lab_elimination", kind: "choice", options: ["mudah_disamakan", "koefisien_kecil", "asal_pilih", "tidak_yakin"] },
+  { id: "bandingan_alternatif", context: "lab_elimination", kind: "choice", options: ["lebih_ringan", "sama", "lebih_berat", "belum_membandingkan"] },
+  { id: "aturan_tanda_sama", context: "lab_elimination", kind: "choice", options: ["dikurangkan", "dijumlahkan", "tergantung_tanda"] },
+  { id: "makna_titik_potong", context: "lab_elimination", kind: "choice", options: ["memenuhi_kedua", "memenuhi_satu", "belum_paham"] },
+  { id: "keyakinan", context: "lab_elimination", kind: "scale", min: 1, max: 5 },
+  { id: "cara_memprediksi", context: "lab_checker", kind: "choice", options: ["substitusi_hitung", "perkiraan", "menebak"] },
+  { id: "keyakinan_prediksi", context: "lab_checker", kind: "scale", min: 1, max: 5 },
+];
 
 export interface ReflectionPayload {
   context: ReflectionContext;

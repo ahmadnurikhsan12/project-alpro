@@ -6,8 +6,10 @@ import { useProgress } from "@/components/providers/progress-provider";
 import { Button, Card, inputClass, MathBlock } from "@/components/ui";
 import { add, frac, mul, parseFraction, type Fraction } from "@/lib/math/fraction";
 import { formatEquation, formatValue, isValidEquation, satisfies, solveSystem, type Equation } from "@/lib/math/spldv";
+import { checkerMetrics, comparePairPrediction } from "@/lib/lab/la";
 import { cn } from "@/lib/utils";
 import { EquationInput, PRESETS } from "./equation-input";
+import { ReflectionForm } from "./reflection-form";
 
 const wrap = (f: Fraction) => (f.n < 0 ? `(${formatValue(f)})` : formatValue(f));
 
@@ -34,11 +36,21 @@ export function PairChecker() {
   const [error, setError] = useState<string | null>(null);
   const [showSolution, setShowSolution] = useState(false);
   const [recorded, setRecorded] = useState(false);
+  // ---- Learning Activity (Tahap 3): prediksi sebelum menguji
+  const [p1, setP1] = useState<boolean | null>(null);
+  const [p2, setP2] = useState<boolean | null>(null);
+  const [tests, setTests] = useState(0);
+  const [predRight, setPredRight] = useState(0);
+  const [match, setMatch] = useState<{ match1: boolean; match2: boolean } | null>(null);
+  const [viewedSolution, setViewedSolution] = useState(false);
+  const [reflState, setReflState] = useState<null | "terkirim" | "dilewati">(null);
 
   const valid = isValidEquation(e1) && isValidEquation(e2);
   const solution = valid ? solveSystem(e1, e2) : null;
+  const predicted = p1 !== null && p2 !== null;
 
   const test = () => {
+    if (!predicted) return;
     const x = parseFraction(xs);
     const y = parseFraction(ys);
     if (!x || !y) {
@@ -49,9 +61,21 @@ export function PairChecker() {
     setError(null);
     const r = { x, y, ok1: satisfies(e1, x, y), ok2: satisfies(e2, x, y) };
     setResult(r);
+    const cmp = comparePairPrediction({ p1: p1!, p2: p2! }, r);
+    setMatch(cmp);
+    const nextTests = tests + 1;
+    const nextRight = predRight + (cmp.correct === 2 ? 1 : 0);
+    setTests(nextTests);
+    setPredRight(nextRight);
+    setP1(null);
+    setP2(null);
     if (r.ok1 && r.ok2 && !recorded) {
       setRecorded(true);
-      void record({ type: "lab", tool: "checker" });
+      void record({
+        type: "lab",
+        tool: "checker",
+        la: checkerMetrics({ ujiTotal: nextTests, prediksiTotal: nextTests, prediksiBenar: nextRight, lihatSolusi: viewedSolution }),
+      });
     }
   };
 
@@ -60,6 +84,23 @@ export function PairChecker() {
     setE2(b);
     setResult(null);
     setShowSolution(false);
+    setP1(null);
+    setP2(null);
+    setMatch(null);
+    setTests(0);
+    setPredRight(0);
+    setViewedSolution(false);
+    setReflState(null);
+    setRecorded(false);
+  };
+
+  const submitReflection = (responses: Record<string, string | number>) => {
+    setReflState("terkirim");
+    void record({ type: "reflection", context: "lab_checker", refId: "checker", responses });
+  };
+  const skipReflection = () => {
+    setReflState("dilewati");
+    void record({ type: "reflection", context: "lab_checker", refId: "checker", responses: {}, skipped: true });
   };
 
   return (
@@ -109,9 +150,40 @@ export function PairChecker() {
               <input id={`check-${name}`} className={cn(inputClass, "text-lg font-semibold")} inputMode="decimal" value={val} onChange={(e) => set(e.target.value)} onKeyDown={(e) => e.key === "Enter" && test()} />
             </div>
           ))}
-          <Button onClick={test} disabled={!valid}>
+          <Button onClick={test} disabled={!valid || !predicted}>
             Uji Pasangan
           </Button>
+        </div>
+        <div data-testid="pair-prediction" className="mt-4 rounded-xl border border-brand-100 bg-white p-3">
+          <p className="text-sm font-bold text-ink">Prediksi dulu, baru uji</p>
+          <p className="mt-1 text-sm text-ink-soft">
+            <strong>Tujuan:</strong> melatih memperkirakan sebelum menghitung. Menurutmu, pasangan (x, y) yang kamu tulis memenuhi persamaan…
+          </p>
+          {(
+            [
+              ["(1)", p1, setP1],
+              ["(2)", p2, setP2],
+            ] as const
+          ).map(([label, val, set]) => (
+            <div key={label} className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="w-24 text-sm font-semibold text-ink">Persamaan {label}</span>
+              <div role="radiogroup" aria-label={`Prediksi persamaan ${label}`} className="flex gap-2">
+                {([true, false] as const).map((v) => (
+                  <button
+                    key={String(v)}
+                    type="button"
+                    role="radio"
+                    aria-checked={val === v}
+                    onClick={() => set(v)}
+                    className={cn("rounded-xl border-2 px-3 py-1 text-sm transition", val === v ? "border-brand-500 bg-brand-50 font-semibold" : "border-slate-200 hover:border-brand-300")}
+                  >
+                    {v ? "Terpenuhi" : "Tidak terpenuhi"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          {!predicted && <p className="mt-2 text-xs text-ink-muted">Pilih prediksi untuk kedua persamaan agar tombol Uji Pasangan aktif.</p>}
         </div>
         {error && (
           <p className="mt-2 text-sm font-medium text-rose-600" role="alert">
@@ -145,15 +217,46 @@ export function PairChecker() {
                   ? `(${formatValue(result.x)}, ${formatValue(result.y)}) hanya memenuhi satu persamaan, jadi BUKAN penyelesaian SPLDV.`
                   : `(${formatValue(result.x)}, ${formatValue(result.y)}) tidak memenuhi kedua persamaan.`}
             </div>
+            {match && (
+              <p role="status" data-testid="pair-prediction-result" className={cn("rounded-lg px-3 py-2 text-sm", match.match1 && match.match2 ? "bg-emerald-50 text-emerald-900" : "bg-amber-50 text-amber-900")}>
+                {match.match1 && match.match2
+                  ? "Kedua prediksimu tepat."
+                  : `Prediksimu untuk persamaan ${[!match.match1 && "(1)", !match.match2 && "(2)"].filter(Boolean).join(" dan ")} belum tepat. Perhatikan substitusi di atas: bandingkan hasil ruas kiri dengan ruas kanan.`}{" "}
+                Memperkirakan dulu lalu memeriksa adalah kebiasaan yang membantu menemukan kesalahan sendiri.
+              </p>
+            )}
+            {result.ok1 && result.ok2 && (
+              <div className="rounded-xl border border-slate-200 p-3">
+                <p className="mb-2 text-sm font-bold text-ink">Refleksi singkat</p>
+                {reflState === null ? (
+                  <ReflectionForm context="lab_checker" promptIds={["cara_memprediksi", "keyakinan_prediksi"]} onSubmit={submitReflection} onSkip={skipReflection} />
+                ) : (
+                  <p role="status" className="text-sm text-emerald-900">
+                    {reflState === "terkirim" ? "Terima kasih, refleksimu tersimpan." : "Refleksi dilewati."}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
         {solution && (
           <div className="mt-5 border-t border-slate-100 pt-4">
             {!showSolution ? (
-              <Button variant="ghost" size="sm" onClick={() => setShowSolution(true)}>
-                <Eye className="h-4 w-4" /> Lihat penyelesaian sebenarnya
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={tests < 2}
+                  onClick={() => {
+                    setShowSolution(true);
+                    setViewedSolution(true);
+                  }}
+                >
+                  <Eye className="h-4 w-4" /> Lihat penyelesaian sebenarnya
+                </Button>
+                {tests < 2 && <p className="mt-1 text-xs text-ink-muted">Dicoba dulu minimal dua kali ({tests}/2), supaya kamu sempat berpikir sendiri.</p>}
+              </>
             ) : (
               <p className="text-sm text-ink-soft">
                 {solution.kind === "unique" ? (

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { completeAnalysis, predictPair } from "./helpers";
 
 /** Mengumpulkan error runtime agar test gagal jika ada error JS di halaman. */
 function trackErrors(page: Page) {
@@ -104,8 +105,10 @@ test("materi: buka modul, kerjakan mini quiz, progres tersimpan & bertahan setel
 test("lab: simulasi eliminasi langkah demi langkah sampai himpunan penyelesaian", async ({ page }) => {
   const errors = trackErrors(page);
   await page.goto("/lab?tab=elimination");
-  await page.getByRole("button", { name: /Sudah tersusun/ }).click();
+  await completeAnalysis(page, { a1: "2", b1: "3", c1: "12", a2: "3", b2: "4", c2: "17" }, { x: "Besarnya berbeda", y: "Besarnya berbeda" });
   await page.getByRole("button", { name: /^x Koefisien: 2 dan 3/ }).click();
+  await page.getByRole("radio", { name: "Memilih saja" }).click();
+  await page.getByRole("button", { name: /Lanjut ke pengali/ }).click();
   // pengali salah dulu → umpan balik
   await page.getByLabel("Persamaan (1) ×").fill("2");
   await page.getByLabel("Persamaan (2) ×").fill("2");
@@ -122,6 +125,7 @@ test("lab: simulasi eliminasi langkah demi langkah sampai himpunan penyelesaian"
   await expect(page.getByText(/tidak hilang/)).toBeVisible();
   await page.getByRole("button", { name: "Kurangkan (−)" }).click();
   await expect(page.getByText(/bertanda sama, jadi dikurangkan/)).toBeVisible();
+  await page.getByRole("button", { name: /Lewati prediksi/ }).click();
   await page.getByRole("button", { name: /Lakukan eliminasi/ }).click();
   await page.getByLabel("y =").fill("2");
   await page.getByRole("button", { name: "Periksa", exact: true }).click();
@@ -135,6 +139,7 @@ test("lab: simulasi eliminasi langkah demi langkah sampai himpunan penyelesaian"
   await page.getByRole("tab", { name: /Uji Pasangan/ }).click();
   await page.getByLabel("Nilai x").fill("4");
   await page.getByLabel("Nilai y").fill("3");
+  await predictPair(page, true, true);
   await page.getByRole("button", { name: "Uji Pasangan" }).click();
   await expect(page.getByText(/adalah penyelesaian SPLDV ini/)).toBeVisible();
 

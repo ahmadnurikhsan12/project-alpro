@@ -17,11 +17,37 @@ import {
   type Equation,
   type Variable,
 } from "@/lib/math/spldv";
+import {
+  REASON_IDS,
+  comparePrediction,
+  efficientVariables,
+  elimMetrics,
+  eliminationOutcome,
+  niceRange,
+  reasonFeedback,
+  relationOf,
+  resultLine,
+  RELATION_LABEL,
+  variableCost,
+  type PredictionResult,
+  type ReasonId,
+} from "@/lib/lab/la";
+import { solveSystem } from "@/lib/math/spldv";
 import { cn } from "@/lib/utils";
+import { AnalysisPanel, type AnalysisResult } from "./analysis-panel";
+import { CoordinatePlot, type PlotLine, type PlotPoint } from "./coordinate-plot";
 import { EquationInput, PRESETS } from "./equation-input";
 import { substitutionLines } from "./pair-checker";
+import { ReflectionForm } from "./reflection-form";
 
-const STEPS = ["Susun", "Pilih variabel", "Pengali", "Kalikan", "Operasi", "Eliminasi", "Substitusi", "Periksa"];
+const STEPS = ["Analisis", "Rencana", "Pengali", "Kalikan", "Operasi", "Eliminasi", "Substitusi", "Periksa", "Refleksi"];
+
+const REASON_LABEL: Record<ReasonId, string> = {
+  pengali_kecil: "Pengali yang diperlukan lebih kecil",
+  koefisien_sudah_sama: "Koefisiennya sudah sama besar",
+  koefisien_kecil: "Koefisiennya tampak lebih kecil",
+  asal_pilih: "Memilih saja",
+};
 
 function fmtTerm(c: number, v: string, lead: boolean) {
   if (c === 0) return lead ? "0" : "+ 0";
@@ -56,8 +82,12 @@ function Why({ children }: { children: ReactNode }) {
   );
 }
 
-function Hints({ hints, onReveal, canReveal }: { hints: string[]; onReveal?: () => void; canReveal?: boolean }) {
-  const [shown, setShown] = useState(0);
+function Hints({ hints, onReveal, canReveal, onHint }: { hints: string[]; onReveal?: () => void; canReveal?: boolean; onHint?: () => void }) {
+  const [shown, setShownRaw] = useState(0);
+  const setShown = (n: number) => {
+    setShownRaw(n);
+    onHint?.();
+  };
   return (
     <div className="mt-3 space-y-2">
       {hints.slice(0, shown).map((h, i) => (
@@ -111,6 +141,18 @@ export function EliminationSim() {
   const [otherS, setOtherS] = useState("");
   const [otherFeedback, setOtherFeedback] = useState<{ ok: boolean; text: string } | null>(null);
   const [recorded, setRecorded] = useState(false);
+  // ---- Learning Activity (Tahap 3)
+  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [reason, setReason] = useState<ReasonId | "">("");
+  const [pred, setPred] = useState({ coef: "", konst: "" });
+  const [predState, setPredState] = useState<"belum" | "dikirim" | "dilewati">("belum");
+  const [changes, setChanges] = useState(0);
+  const [hintCount, setHintCount] = useState(0);
+  const [opTries, setOpTries] = useState(0);
+  const [marked, setMarked] = useState(false);
+  const [reflState, setReflState] = useState<null | "terkirim" | "dilewati">(null);
+  const countHint = () => setHintCount((h) => h + 1);
 
   const keep: Variable = elim === "y" ? "x" : "y";
   const m1 = Number(m1s);
@@ -148,8 +190,38 @@ export function EliminationSim() {
     return { eq, oc, kc, kTerm, rhs, value: div(rhs, frac(oc)) };
   }, [scaled, subInto, e1, e2, elim, keep]);
 
+  // Hasil eliminasi nyata (dengan pengali pilihan siswa) dan perbandingan dengan prediksi.
+  const outcome = useMemo(() => (elim && derived && Number.isInteger(m1) && Number.isInteger(m2) ? eliminationOutcome(e1, e2, elim, m1, m2) : null), [e1, e2, elim, derived, m1, m2]);
+  const predResult: PredictionResult | "dilewati" | null = useMemo(() => {
+    if (predState === "dilewati") return "dilewati";
+    if (predState !== "dikirim" || !outcome) return null;
+    return comparePrediction({ coef: Number(pred.coef), konst: Number(pred.konst) }, { coef: outcome.coef, konst: outcome.konst });
+  }, [predState, pred, outcome]);
+
+  const solution = useMemo(() => {
+    const s = solveSystem(e1, e2);
+    return s.kind === "unique" ? { x: s.x, y: s.y, xn: s.x.n / s.x.d, yn: s.y.n / s.y.d } : null;
+  }, [e1, e2]);
+
   const resetFrom = (s: number) => {
-    if (s <= 1) setElim(null);
+    if (s <= 0) {
+      setAnalysis(null);
+      setShowAnalysis(false);
+      setChanges(0);
+      setHintCount(0);
+      setOpTries(0);
+      setMarked(false);
+      setReflState(null);
+      setRecorded(false);
+    }
+    if (s <= 1) {
+      setElim(null);
+      setReason("");
+    }
+    if (s <= 4) {
+      setPred({ coef: "", konst: "" });
+      setPredState("belum");
+    }
     if (s <= 2) {
       setM1s("");
       setM2s("");
@@ -217,6 +289,7 @@ export function EliminationSim() {
   const chooseOp = (o: "add" | "subtract") => {
     if (!scaled) return;
     setOp(o);
+    setOpTries((t) => t + 1);
     const c1 = coefficientOf(scaled.s1, elim!);
     const c2 = coefficientOf(scaled.s2, elim!);
     if (o === scaled.correctOp) {
@@ -262,9 +335,67 @@ export function EliminationSim() {
     setStep(7);
     if (!recorded) {
       setRecorded(true);
-      void record({ type: "lab", tool: "elimination" });
+      void record({
+        type: "lab",
+        tool: "elimination",
+        la: elimMetrics({
+          analisisPercobaan: analysis?.percobaan ?? 0,
+          analisisPetunjuk: analysis?.petunjuk ?? 0,
+          variabelEfisien: elim ? efficientVariables(e1, e2).includes(elim) : null,
+          pengaliPercobaan: mWrong + 1,
+          operasiPercobaan: opTries,
+          prediksi: predResult,
+          ubahRencana: changes,
+          petunjukTotal: hintCount + (analysis?.petunjuk ?? 0),
+          grafikDitandai: marked,
+        }),
+      });
     }
   };
+
+  const changePlan = () => {
+    setChanges((c) => c + 1);
+    setShowAnalysis(false);
+    setMarked(false);
+    setReflState(null);
+    resetFrom(1);
+  };
+
+  const submitReflection = (responses: Record<string, string | number>) => {
+    setReflState("terkirim");
+    void record({ type: "reflection", context: "lab_elimination", refId: "elimination", responses });
+  };
+  const skipReflection = () => {
+    setReflState("dilewati");
+    void record({ type: "reflection", context: "lab_elimination", refId: "elimination", responses: {}, skipped: true });
+  };
+
+  // ---- grafik: garis awal, garis terkali, garis hasil eliminasi, titik penyelesaian
+  const plot = useMemo(() => {
+    const lines: PlotLine[] = [];
+    const points: PlotPoint[] = [];
+    if (step >= 1) {
+      lines.push({ eq: e1, color: "#2546ea", label: "(1)" }, { eq: e2, color: "#7c3aed", label: "(2)" });
+    }
+    if (step >= 3 && scaled) {
+      lines.push({ eq: scaled.s1, color: "#2546ea", label: "(1′)", dashed: true, width: 1.5 }, { eq: scaled.s2, color: "#7c3aed", label: "(2′)", dashed: true, width: 1.5 });
+    }
+    if (step >= 5 && outcome) {
+      const rl = resultLine(outcome);
+      if (rl) lines.push({ eq: rl, color: "#059669", label: "hasil eliminasi", width: 2 });
+    }
+    if (step >= 7 && marked && solution) points.push({ x: solution.xn, y: solution.yn, color: "#dc2626", label: `(${formatValue(solution.x)}, ${formatValue(solution.y)})` });
+    const range = niceRange(solution ? [{ x: solution.xn, y: solution.yn }] : []);
+    const caption =
+      step <= 2
+        ? "Setiap persamaan adalah sebuah garis. Setiap titik pada garis (1) memenuhi persamaan (1); begitu pula garis (2)."
+        : step <= 4
+          ? "Garis putus-putus adalah persamaan setelah dikalikan. Letaknya sama dengan garis awal: mengalikan kedua ruas tidak mengubah penyelesaian."
+          : step <= 6
+            ? `Garis hijau adalah persamaan hasil eliminasi (hanya memuat ${keep}). Garisnya lurus sejajar sumbu dan melewati titik potong kedua garis awal.`
+            : "Titik potong kedua garis adalah pasangan (x, y) yang memenuhi kedua persamaan.";
+    return { lines, points, range, caption };
+  }, [step, e1, e2, scaled, outcome, marked, solution, keep]);
 
   const xVal = elim && scaled?.keepValue && otherInfo ? (elim === "x" ? otherInfo.value : scaled.keepValue) : null;
   const yVal = elim && scaled?.keepValue && otherInfo ? (elim === "y" ? otherInfo.value : scaled.keepValue) : null;
@@ -336,30 +467,77 @@ export function EliminationSim() {
               <RotateCcw className="h-4 w-4" /> Ganti sistem / mulai ulang
             </Button>
           )}
+          {step >= 1 && valid && (
+            <div className="mt-4 border-t border-slate-100 pt-3">
+              <h4 className="text-sm font-bold text-ink">Representasi grafik</h4>
+              <CoordinatePlot lines={plot.lines} points={plot.points} range={plot.range} caption={plot.caption} />
+            </div>
+          )}
         </Card>
 
         {/* Panel langkah */}
         <Card aria-live="polite">
+          {step >= 1 && step <= 6 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              <Button size="sm" variant="ghost" aria-expanded={showAnalysis} onClick={() => setShowAnalysis((s) => !s)}>
+                {showAnalysis ? "Tutup analisisku" : "Buka kembali analisisku"}
+              </Button>
+              {step >= 2 && (
+                <Button size="sm" variant="ghost" onClick={changePlan}>
+                  Ubah rencana
+                </Button>
+              )}
+            </div>
+          )}
+          {step >= 1 && step <= 6 && showAnalysis && (
+            <div data-testid="analysis-summary" className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-ink-soft">
+              <p className="font-semibold text-ink">Analisismu</p>
+              <p className="mt-1 font-mono">
+                (1) {formatEquation(e1)} &nbsp; (2) {formatEquation(e2)}
+              </p>
+              <ul className="mt-1 list-disc pl-5">
+                {(["x", "y"] as const)
+                  .filter((v) => (v === "x" ? canX : canY))
+                  .map((v) => (
+                    <li key={v}>
+                      Koefisien {v}: {formatNumber(coefficientOf(e1, v))} dan {formatNumber(coefficientOf(e2, v))} — {RELATION_LABEL[relationOf(coefficientOf(e1, v), coefficientOf(e2, v))].toLowerCase()}
+                    </li>
+                  ))}
+              </ul>
+              <p className="mt-1">Tujuan: menemukan pasangan (x, y) yang memenuhi kedua persamaan.</p>
+              <p className="mt-1 text-xs text-ink-muted">Setelah melihat hasilnya, kamu boleh mengubah rencana dan mencoba variabel lain.</p>
+            </div>
+          )}
           {step === 0 && (
             <div>
-              <h3 className="text-lg font-bold text-ink">Langkah 1 — Susun kedua persamaan</h3>
-              <p className="mt-2 text-ink-soft">Pastikan kedua persamaan berbentuk ax + by = c: suku x di bawah suku x, suku y di bawah suku y, dan konstanta di ruas kanan.</p>
-              <Why>Dengan menyusun rapi, kita bisa membandingkan koefisien variabel yang sama dan menjumlahkan/mengurangkan suku sejenis.</Why>
+              <h3 className="text-lg font-bold text-ink">Langkah 1 — Analisis tugas</h3>
+              <p className="mt-2 text-ink-soft">Susun kedua persamaan dalam bentuk ax + by = c, lalu pahami tugasnya sebelum memilih cara menyelesaikannya.</p>
+              <Why>Dengan menyusun rapi dan membaca koefisiennya lebih dulu, kita bisa membandingkan koefisien variabel yang sama dan memilih rencana yang masuk akal, bukan sekadar mencoba-coba.</Why>
               {!valid && <Verdict ok={false}>Koefisien x dan y pada satu persamaan tidak boleh keduanya 0.</Verdict>}
               {valid && !canX && !canY && (
                 <Verdict ok={false}>Setiap variabel sudah hilang di salah satu persamaan. Sistem ini bisa langsung diselesaikan dengan substitusi — pilih sistem lain untuk berlatih eliminasi.</Verdict>
               )}
-              <div className="mt-5 flex justify-end">
-                <Button disabled={!valid || (!canX && !canY)} onClick={() => setStep(1)}>
-                  Sudah tersusun, lanjut <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
+              {valid && (canX || canY) && (
+                <AnalysisPanel
+                  key={`${formatEquation(e1)}|${formatEquation(e2)}`}
+                  e1={e1}
+                  e2={e2}
+                  usable={[...(canX ? (["x"] as const) : []), ...(canY ? (["y"] as const) : [])]}
+                  onComplete={(r) => {
+                    setAnalysis(r);
+                    setStep(1);
+                  }}
+                />
+              )}
             </div>
           )}
 
           {step === 1 && (
             <div>
-              <h3 className="text-lg font-bold text-ink">Langkah 2 — Pilih variabel yang dieliminasi</h3>
+              <h3 className="text-lg font-bold text-ink">Langkah 2 — Rencanakan: pilih variabel yang dieliminasi</h3>
+              <p className="mt-2 text-sm text-ink-muted">
+                <strong>Tujuan:</strong> memilih variabel yang membuat pekerjaanmu paling ringan, lalu menyatakan alasannya.
+              </p>
               <p className="mt-2 text-ink-soft">Variabel mana yang ingin kamu hilangkan lebih dulu?</p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {(["x", "y"] as const).map((v) => {
@@ -371,11 +549,12 @@ export function EliminationSim() {
                       key={v}
                       type="button"
                       disabled={!ok}
-                      onClick={() => {
-                        setElim(v);
-                        setStep(2);
-                      }}
-                      className="rounded-xl border-2 border-slate-200 p-4 text-left transition hover:border-brand-400 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-pressed={elim === v}
+                      onClick={() => setElim(v)}
+                      className={cn(
+                        "rounded-xl border-2 p-4 text-left transition hover:border-brand-400 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50",
+                        elim === v ? "border-brand-500 bg-brand-50" : "border-slate-200",
+                      )}
                     >
                       <p className="font-mono text-2xl font-bold text-ink">{v}</p>
                       <p className="mt-1 text-sm text-ink-muted">
@@ -386,7 +565,41 @@ export function EliminationSim() {
                   );
                 })}
               </div>
+              {elim && (
+                <fieldset className="mt-4">
+                  <legend className="text-sm font-semibold text-ink">
+                    Mengapa kamu memilih {elim}?
+                  </legend>
+                  <div role="radiogroup" aria-label="Alasan memilih variabel" className="mt-2 flex flex-wrap gap-2">
+                    {REASON_IDS.map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        role="radio"
+                        aria-checked={reason === r}
+                        onClick={() => setReason(r)}
+                        className={cn("rounded-xl border-2 px-3 py-1.5 text-sm transition", reason === r ? "border-brand-500 bg-brand-50 font-semibold" : "border-slate-200 hover:border-brand-300")}
+                      >
+                        {REASON_LABEL[r]}
+                      </button>
+                    ))}
+                  </div>
+                  {reason && (() => {
+                    const fb = reasonFeedback(elim, reason, e1, e2);
+                    return (
+                      <p role="status" data-testid="reason-feedback" className={cn("mt-2 rounded-lg px-3 py-2 text-sm", fb.tone === "baik" ? "bg-emerald-50 text-emerald-900" : fb.tone === "periksa" ? "bg-amber-50 text-amber-900" : "bg-slate-50 text-ink-soft")}>
+                        {fb.text}
+                      </p>
+                    );
+                  })()}
+                </fieldset>
+              )}
               <Why>Menghilangkan satu variabel mengubah dua persamaan dua variabel menjadi satu persamaan satu variabel yang bisa langsung dihitung. Pilih variabel yang koefisiennya paling mudah disamakan.</Why>
+              <div className="mt-5 flex justify-end">
+                <Button disabled={!elim || !reason} onClick={() => setStep(2)}>
+                  Lanjut ke pengali <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
 
@@ -425,7 +638,7 @@ export function EliminationSim() {
               </div>
               {mFeedback && <Verdict ok={mFeedback.ok}>{mFeedback.text}</Verdict>}
               {!mFeedback?.ok && (
-                <Hints
+                <Hints onHint={countHint}
                   key={`h2-${elim}`}
                   hints={[
                     `Perhatikan angka di depan ${elim}: ${Math.abs(derived.c1)} dan ${Math.abs(derived.c2)}. Kita ingin keduanya menjadi bilangan yang sama.`,
@@ -504,7 +717,7 @@ export function EliminationSim() {
               </div>
               {opFeedback && <Verdict ok={opFeedback.ok}>{opFeedback.text}</Verdict>}
               {!opFeedback?.ok && (
-                <Hints
+                <Hints onHint={countHint}
                   hints={[
                     `Lihat tanda koefisien ${elim} pada (1') dan (2').`,
                     "Jika tandanya sama, a − a = 0. Jika berlawanan, a + (−a) = 0.",
@@ -513,8 +726,50 @@ export function EliminationSim() {
                 />
               )}
               <Why>Tujuan kita adalah membuat koefisien {elim} menjadi 0. Tanda koefisien menentukan operasi mana yang menghasilkan 0.</Why>
+              {opFeedback?.ok && (
+                <div data-testid="prediction-panel" className="mt-4 rounded-2xl border border-brand-100 bg-white p-4">
+                  <p className="text-sm font-bold text-ink">Prediksi dulu, baru lihat hasilnya</p>
+                  <p className="mt-1 text-sm text-ink-soft">
+                    <strong>Tujuan:</strong> menguji pemahamanmu. Setelah operasi itu, persamaan yang tersisa hanya memuat {keep}. Berapa koefisien {keep} dan konstantanya?
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-end gap-2 font-mono text-lg">
+                    <input
+                      aria-label={`Prediksi koefisien ${keep}`}
+                      inputMode="numeric"
+                      disabled={predState !== "belum"}
+                      value={pred.coef}
+                      onChange={(e) => setPred((p) => ({ ...p, coef: e.target.value.replace(/[^\d-]/g, "") }))}
+                      className={cn(inputClass, "w-20 text-center")}
+                    />
+                    <span className="pb-2">{keep} =</span>
+                    <input
+                      aria-label="Prediksi konstanta"
+                      inputMode="numeric"
+                      disabled={predState !== "belum"}
+                      value={pred.konst}
+                      onChange={(e) => setPred((p) => ({ ...p, konst: e.target.value.replace(/[^\d-]/g, "") }))}
+                      className={cn(inputClass, "w-20 text-center")}
+                    />
+                    {predState === "belum" && (
+                      <>
+                        <Button size="sm" disabled={!/^-?\d+$/.test(pred.coef) || !/^-?\d+$/.test(pred.konst)} onClick={() => setPredState("dikirim")}>
+                          Kunci prediksi
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setPredState("dilewati")}>
+                          Lewati prediksi
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                  {predState !== "belum" && (
+                    <p role="status" className="mt-2 text-sm text-ink-soft">
+                      {predState === "dikirim" ? "Prediksi terkunci. Kita bandingkan dengan hasil nyata pada langkah berikutnya." : "Prediksi dilewati. Tidak apa-apa — kamu tetap bisa melanjutkan."}
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="mt-5 flex justify-end">
-                <Button disabled={!opFeedback?.ok} onClick={() => setStep(5)}>
+                <Button disabled={!opFeedback?.ok || predState === "belum"} onClick={() => setStep(5)}>
                   Lakukan eliminasi <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -540,6 +795,16 @@ export function EliminationSim() {
                 </div>
               </div>
 
+              {predResult && predResult !== "dilewati" && outcome && (
+                <p role="status" data-testid="prediction-result" className={cn("mt-3 rounded-lg px-3 py-2 text-sm", predResult === "berbeda" ? "bg-amber-50 text-amber-900" : "bg-emerald-50 text-emerald-900")}>
+                  Prediksimu: {pred.coef}{keep} = {pred.konst}. Hasil nyata: {formatNumber(outcome.coef)}{keep} = {formatNumber(outcome.konst)}.{" "}
+                  {predResult === "persis"
+                    ? "Prediksimu tepat."
+                    : predResult === "setara"
+                      ? "Bentuknya berbeda, tetapi setara (keduanya memberi nilai yang sama)."
+                      : "Berbeda dari prediksimu. Periksa kembali: tanda koefisien dan konstanta pada (1′) dan (2′), serta operasi yang kamu pilih."}
+                </p>
+              )}
               {scaled.keepValue === null ? (
                 <>
                   <Verdict ok={false}>
@@ -576,7 +841,7 @@ export function EliminationSim() {
                     </Button>
                   </div>
                   {keepFeedback && <Verdict ok={keepFeedback.ok}>{keepFeedback.text}</Verdict>}
-                  {!keepFeedback?.ok && <Hints hints={[`Persamaan yang tersisa hanya memuat ${keep}.`, `Bagi kedua ruas dengan koefisien ${keep}, yaitu ${formatNumber(scaled.rc)}.`, "Hasilnya boleh bilangan negatif atau pecahan."]} />}
+                  {!keepFeedback?.ok && <Hints onHint={countHint} hints={[`Persamaan yang tersisa hanya memuat ${keep}.`, `Bagi kedua ruas dengan koefisien ${keep}, yaitu ${formatNumber(scaled.rc)}.`, "Hasilnya boleh bilangan negatif atau pecahan."]} />}
                   <Why>Karena {elim} sudah hilang, persamaan tinggal satu variabel sehingga nilainya bisa ditentukan pasti.</Why>
                   <div className="mt-5 flex justify-end">
                     <Button disabled={!keepFeedback?.ok} onClick={() => setStep(6)}>
@@ -649,7 +914,7 @@ export function EliminationSim() {
                 </Button>
               </div>
               {otherFeedback && <Verdict ok={otherFeedback.ok}>{otherFeedback.text}</Verdict>}
-              {!otherFeedback?.ok && otherInfo && <Hints hints={[`Persamaan di atas kini hanya memuat ${elim}.`, `Bagi ${formatValue(otherInfo.rhs)} dengan koefisien ${elim}, yaitu ${formatNumber(otherInfo.oc)}.`]} />}
+              {!otherFeedback?.ok && otherInfo && <Hints onHint={countHint} hints={[`Persamaan di atas kini hanya memuat ${elim}.`, `Bagi ${formatValue(otherInfo.rhs)} dengan koefisien ${elim}, yaitu ${formatNumber(otherInfo.oc)}.`]} />}
               <Why>Nilai {keep} sudah diketahui, sehingga persamaan awal tinggal memiliki satu variabel yang belum diketahui. (Kamu juga bisa mengeliminasi {keep} untuk mencari {elim} — hasilnya pasti sama.)</Why>
               <div className="mt-5 flex justify-end">
                 <Button disabled={!otherFeedback?.ok} onClick={finish}>
@@ -684,7 +949,102 @@ export function EliminationSim() {
                 <p className="mt-2 text-ink-soft">Sistem ini tidak memiliki penyelesaian tunggal. Coba buka tab Grafik untuk melihat mengapa kedua garis tidak berpotongan di satu titik.</p>
               )}
               <Why>Penyelesaian SPLDV harus memenuhi kedua persamaan. Pemeriksaan memastikan tidak ada kesalahan hitung atau tanda.</Why>
+              {xVal && yVal && (
+                <div className="mt-4 rounded-xl border border-brand-100 bg-white p-3">
+                  <p className="text-sm text-ink-soft">
+                    <strong>Hubungkan dengan grafik:</strong> pasangan yang baru kamu temukan harus menjadi titik di kedua garis sekaligus.
+                  </p>
+                  <Button size="sm" variant="outline" className="mt-2" disabled={marked} onClick={() => setMarked(true)}>
+                    Tandai penyelesaianku pada grafik
+                  </Button>
+                  {marked && (
+                    <p role="status" data-testid="graph-link" className="mt-2 text-sm text-emerald-900">
+                      Titik ({formatValue(xVal)}, {formatValue(yVal)}) berada pada garis (1), garis (2), dan garis hasil eliminasi. Karena itu eliminasi tidak mengubah penyelesaian: ia hanya menggantikan garis-garis awal dengan garis yang lebih mudah dibaca, yang tetap melewati titik potong yang sama.
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="mt-5 flex flex-wrap justify-end gap-2">
+                <Button variant="outline" onClick={changePlan}>
+                  Coba variabel lain
+                </Button>
+                <Button variant="outline" onClick={() => randomSystem("sedang")}>
+                  <Dices className="h-4 w-4" /> Sistem acak baru
+                </Button>
+                <Button variant="outline" onClick={() => resetFrom(0)}>
+                  <RotateCcw className="h-4 w-4" /> Mulai ulang
+                </Button>
+                <Button onClick={() => setStep(8)}>
+                  Lanjut ke refleksi <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {step === 8 && (
+            <div>
+              <h3 className="text-lg font-bold text-ink">Langkah 9 — Refleksi</h3>
+              <p className="mt-2 text-sm text-ink-muted">
+                <strong>Tujuan:</strong> melihat kembali rencanamu dan membandingkannya dengan pilihan lain, supaya kamu bisa memilih lebih baik pada soal berikutnya.
+              </p>
+              <div className="mt-3 overflow-x-auto" data-testid="plan-comparison">
+                <table className="w-full text-left text-sm">
+                  <caption className="mb-1 text-left text-xs font-semibold text-ink-muted">Perbandingan rencana: mengeliminasi x atau y</caption>
+                  <thead className="text-xs text-ink-muted">
+                    <tr>
+                      <th className="py-1 pr-2">Variabel</th>
+                      <th className="py-1 pr-2">Koefisien</th>
+                      <th className="py-1 pr-2">Hubungan</th>
+                      <th className="py-1 pr-2">Pengali</th>
+                      <th className="py-1">Operasi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(["x", "y"] as const)
+                      .filter((v) => (v === "x" ? canX : canY))
+                      .map((v) => {
+                        const c = variableCost(e1, e2, v);
+                        const c1 = coefficientOf(e1, v);
+                        const c2 = coefficientOf(e2, v);
+                        return (
+                          <tr key={v} className={cn("border-t border-slate-100", v === elim && "bg-brand-50/60 font-semibold")}>
+                            <td className="py-1.5 pr-2 font-mono">
+                              {v}
+                              {v === elim && " (pilihanmu)"}
+                            </td>
+                            <td className="py-1.5 pr-2 font-mono">
+                              {formatNumber(c1)}, {formatNumber(c2)}
+                            </td>
+                            <td className="py-1.5 pr-2">{RELATION_LABEL[relationOf(c1, c2)]}</td>
+                            <td className="py-1.5 pr-2 font-mono">{c ? `×${c.m1}, ×${c.m2}` : "—"}</td>
+                            <td className="py-1.5">{c ? (c.operation === "add" ? "dijumlahkan" : "dikurangkan") : "—"}</td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+                <p className="mt-2 text-xs text-ink-muted">
+                  Pengali di tabel adalah pengali terkecil. Rencana yang paling ringan umumnya adalah yang pengalinya paling kecil. Tidak ada pilihan yang keliru selama langkahnya benar; pilihan yang berbeda hanya membuat hitungan lebih ringan atau lebih berat.
+                </p>
+              </div>
+              <div className="mt-4">
+                {reflState === null ? (
+                  <ReflectionForm
+                    context="lab_elimination"
+                    promptIds={["bagian_menantang", "alasan_variabel", "bandingan_alternatif", "aturan_tanda_sama", "makna_titik_potong", "keyakinan"]}
+                    onSubmit={submitReflection}
+                    onSkip={skipReflection}
+                  />
+                ) : (
+                  <p role="status" data-testid="reflection-done" className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+                    {reflState === "terkirim" ? "Terima kasih, refleksimu tersimpan." : "Refleksi dilewati. Kamu bisa mengisinya lain kali."}
+                  </p>
+                )}
+              </div>
+              <div className="mt-5 flex flex-wrap justify-end gap-2">
+                <Button variant="outline" onClick={changePlan}>
+                  Coba variabel lain
+                </Button>
                 <Button variant="outline" onClick={() => randomSystem("sedang")}>
                   <Dices className="h-4 w-4" /> Sistem acak baru
                 </Button>

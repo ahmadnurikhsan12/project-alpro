@@ -55,9 +55,11 @@ describe("skema event: bentuk baru bersifat opsional", () => {
 });
 
 describe("refleksi: hanya pilihan/skala sesuai registri", () => {
-  it("registri produksi masih kosong: jawaban ditolak, 'dilewati' sah", () => {
-    expect(REFLECTION_PROMPTS).toHaveLength(0);
-    expect(rawEventSchema.safeParse(reflection()).success).toBe(false);
+  it("registri produksi: prompt Lab sah; prompt/konteks tak dikenal ditolak; 'dilewati' sah", () => {
+    expect(REFLECTION_PROMPTS.length).toBeGreaterThan(0);
+    expect(rawEventSchema.safeParse(reflection()).success).toBe(false); // prompt milik registri uji, bukan produksi
+    expect(rawEventSchema.safeParse(reflection({ context: "lab_elimination", responses: { keyakinan: 4 } })).success).toBe(true);
+    expect(rawEventSchema.safeParse(reflection({ context: "lab_checker", responses: { keyakinan: 4 } })).success).toBe(false);
     expect(rawEventSchema.safeParse(reflection({ responses: {}, skipped: true })).success).toBe(true);
   });
 
