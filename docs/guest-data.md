@@ -9,7 +9,7 @@ Guest Mode **sudah** menyimpan data pembelajaran di perangkat, tanpa login, API,
 | Catatan Learning Activity, jawaban refleksi, metrik proses disimpan lokal | Ya. Setiap event yang diterima (termasuk `la` dan jawaban refleksi) tersimpan di `GuestData.events`, kunci localStorage `mathquest.guest.v1`. |
 | Tanpa login/API/LLM/biaya | Ya. Hanya `window.localStorage`. |
 | Bertahan setelah browser ditutup | Ya. Diuji E2E (`e2e/stage4.spec.ts`, “data pembelajaran bertahan…”) dengan konteks browser baru. |
-| Dapat diekspor manual ke CSV (Tahap 5) | Siap. `deriveLearningRecords(events)` membangun catatan dari event dengan mesin yang sama dengan server. Tombol ekspor sendiri **belum dibuat** (Tahap 5). |
+| Dapat diekspor manual ke CSV (Tahap 5) | Siap. `deriveLearningRecords(events)` membangun catatan dari event dengan mesin yang sama dengan server. Tombol ekspor dibuat pada Tahap 5 (`/ekspor`; lihat `docs/tahap5-asesmen-ekspor.md`). |
 | Tidak mengubah/menghapus data lama | Ya. Format tidak berubah; di bawah batas, daftar event tidak diubah sama sekali (diuji). |
 
 ## Yang ditambahkan pada Tahap 4 (aditif)
@@ -36,5 +36,5 @@ Guest Mode **sudah** menyimpan data pembelajaran di perangkat, tanpa login, API,
 ## Cadangan (cara yang direkomendasikan)
 
 1. **Selama pilot (tanpa fitur baru):** minta siswa tidak menghapus data situs; satu perangkat per siswa; gunakan browser yang sama sepanjang pilot.
-2. **Tahap 5 (setelah disetujui):** tombol ekspor manual CSV tanpa data pribadi (tanpa nama; hanya kode anonim), yang dapat disimpan siswa atau guru ke berkas. Sebaiknya diekspor di akhir setiap pertemuan.
+2. **Tahap 5:** ekspor manual CSV/ZIP tanpa data pribadi (tanpa nama; hanya kode anonim) di halaman `/ekspor`. Sebaiknya diekspor di akhir setiap pertemuan.
 3. **Privasi:** CSV tidak boleh memuat nama panggilan, email, atau teks bebas (refleksi memang hanya pilihan/skala).

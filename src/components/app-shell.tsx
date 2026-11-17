@@ -3,8 +3,10 @@
 import {
   BookOpen,
   ClipboardCheck,
+  ClipboardList,
   Cloud,
   CloudOff,
+  FileSpreadsheet,
   FlaskConical,
   Gamepad2,
   History,
@@ -33,8 +35,10 @@ export const NAV = [
   { href: "/latihan", label: "Latihan", icon: PencilLine },
   { href: "/games", label: "Games", icon: Gamepad2 },
   { href: "/evaluasi", label: "Evaluasi", icon: ClipboardCheck },
+  { href: "/asesmen", label: "Pretest/Posttest", icon: ClipboardList },
   { href: "/pencapaian", label: "Pencapaian", icon: Trophy },
   { href: "/riwayat", label: "Riwayat", icon: History },
+  { href: "/ekspor", label: "Ekspor Data", icon: FileSpreadsheet },
   { href: "/profil", label: "Profil", icon: UserRound },
 ] as const;
 
