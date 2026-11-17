@@ -144,10 +144,9 @@ Email Mode memerlukan proyek Supabase sungguhan untuk diuji end-to-end; uji manu
 
 ## 9. Deployment ke Vercel
 
-1. Unggah proyek ke GitHub (lihat bagian berikut).
-2. Di [vercel.com](https://vercel.com) pilih **Add New → Project**, impor repositori. Framework terdeteksi otomatis (Next.js).
-3. Tambahkan Environment Variables (opsional, untuk Email Mode): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SITE_URL` (= domain Vercel Anda).
-4. Klik **Deploy**. Setelah selesai, tambahkan `https://domain-anda/auth/callback` ke Redirect URLs Supabase.
+Versi saat ini sudah online di **https://mathquest-puce.vercel.app** (Vercel paket gratis, Guest Mode, tanpa variabel lingkungan). Cara memperbarui, rollback, pengujian situs online, dan batas paket: [docs/deployment.md](docs/deployment.md).
+
+Untuk membuat deployment baru lewat GitHub: unggah proyek ke GitHub, di [vercel.com](https://vercel.com) pilih **Add New → Project**, impor repositori (Next.js terdeteksi otomatis). Variabel lingkungan (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SITE_URL`) hanya diperlukan untuk Email Mode (opsional).
 
 ## 10. Mengunggah ke GitHub
 

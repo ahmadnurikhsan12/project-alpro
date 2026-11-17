@@ -45,6 +45,9 @@ export async function lessonFlow(page: Page, tap: boolean, slug: string, checks:
 }
 
 export async function tebakFlow(page: Page, tap: boolean) {
+  // Pengaman anti-curang menolak permainan yang selesai lebih cepat dari batas wajar; robot uji berjalan lebih cepat dari manusia,
+  // jadi waktu dimajukan agar hasil uji tidak bergantung pada kecepatan server.
+  await page.clock.install();
   await page.goto("/games/tebak-nilai");
   await act(tap, page.getByRole("button", { name: "Mulai Main" }));
   const guessBtn = page.getByRole("button", { name: "Tebak", exact: true });
@@ -77,6 +80,7 @@ export async function tebakFlow(page: Page, tap: boolean) {
       await predictTebak(page, "Terlalu besar", "Terlalu besar", "Saya menyesuaikan dari sinyal tebakan sebelumnya");
       await act(tap, guessBtn);
     }
+    if (r === 2) await page.clock.fastForward(120_000);
     await act(tap, page.getByRole("button", { name: r < 2 ? "Ronde berikutnya" : "Lihat hasil akhir" }));
   }
   await expect(page.getByText("Permainan selesai!")).toBeVisible();
@@ -98,7 +102,7 @@ export async function tebakFlow(page: Page, tap: boolean) {
 }
 
 export async function kilatFlow(page: Page, tap: boolean) {
-  await page.clock.install();
+  await page.clock.install().catch(() => undefined); // sudah terpasang bila dipanggil setelah tebakFlow pada halaman yang sama
   await page.goto("/games/eliminasi-kilat");
   await act(tap, page.getByRole("button", { name: "Mulai Main" }));
   await expect(page.getByRole("timer")).toBeVisible();
