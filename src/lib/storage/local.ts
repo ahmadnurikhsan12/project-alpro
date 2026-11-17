@@ -2,6 +2,7 @@
 
 import { createInitialState, normalizeState } from "@/lib/progress/engine";
 import type { ProgressState, RawEvent } from "@/lib/progress/types";
+import { backupUnreadable, unreadableReason } from "./backup";
 import { pruneEvents } from "./guest-data";
 
 const GUEST_KEY = "mathquest.guest.v1";
@@ -55,6 +56,13 @@ export function loadGuest(): GuestData {
       events: Array.isArray(data.events) ? data.events : [],
       displayName: typeof data.displayName === "string" ? data.displayName : "",
     };
+  }
+  // Data ada tetapi tidak dapat dipakai (rusak/versi lain): salin ke cadangan agar tidak hilang saat disimpan ulang.
+  try {
+    const raw = window.localStorage.getItem(GUEST_KEY);
+    if (raw) backupUnreadable(GUEST_KEY, raw, unreadableReason(raw));
+  } catch {
+    /* abaikan */
   }
   return { state: createInitialState(), events: [], displayName: "" };
 }

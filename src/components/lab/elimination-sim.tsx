@@ -420,14 +420,14 @@ export function EliminationSim() {
   return (
     <div className="space-y-5">
       {/* indikator langkah */}
-      <ol className="flex gap-1 overflow-x-auto pb-1" aria-label="Langkah simulasi">
+      <ol tabIndex={0} className="flex gap-1 overflow-x-auto pb-1" aria-label="Langkah simulasi">
         {STEPS.map((s, i) => (
           <li
             key={s}
             aria-current={i === step ? "step" : undefined}
             className={cn(
               "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
-              i < step ? "bg-emerald-100 text-emerald-800" : i === step ? "bg-brand-600 text-white" : "bg-slate-100 text-ink-muted",
+              i < step ? "bg-emerald-100 text-emerald-800" : i === step ? "bg-brand-600 text-white" : "bg-slate-100 text-ink-soft",
             )}
           >
             <span>{i + 1}</span> {s}
@@ -438,7 +438,7 @@ export function EliminationSim() {
       <div className="grid gap-5 lg:grid-cols-[1fr_1.2fr]">
         {/* Panel sistem */}
         <Card className="h-fit">
-          <h3 className="font-bold text-ink">Sistem persamaan</h3>
+          <h2 className="font-bold text-ink">Sistem persamaan</h2>
           {step === 0 ? (
             <>
               <p className="mt-1 text-sm text-ink-muted">Pilih contoh, buat soal acak, atau tulis sistemmu sendiri.</p>
@@ -473,7 +473,7 @@ export function EliminationSim() {
               </div>
             </>
           ) : (
-            <div className="mt-3 overflow-x-auto rounded-xl bg-slate-50 p-3">
+            <div tabIndex={0} className="mt-3 overflow-x-auto rounded-xl bg-slate-50 p-3">
               <EqRow eq={e1} label="(1)" highlight={step >= 1 && step <= 2 ? (elim ?? undefined) : undefined} />
               <EqRow eq={e2} label="(2)" highlight={step >= 1 && step <= 2 ? (elim ?? undefined) : undefined} />
             </div>
@@ -688,7 +688,7 @@ export function EliminationSim() {
                 <strong>Tujuan:</strong> menuliskan dua persamaan baru yang setara dengan persamaan awal.
               </p>
               <p className="mt-2 text-ink-soft">Setiap suku dikalikan, termasuk konstanta di ruas kanan.</p>
-              <div className="mt-4 space-y-3 overflow-x-auto rounded-xl bg-slate-50 p-3">
+              <div tabIndex={0} className="mt-4 space-y-3 overflow-x-auto rounded-xl bg-slate-50 p-3">
                 <div>
                   <p className="text-xs font-semibold text-ink-muted">
                     ({formatEquation(e1)}) × {m1}
@@ -714,7 +714,7 @@ export function EliminationSim() {
           {step === 4 && scaled && (
             <div>
               <h3 className="text-lg font-bold text-ink">Langkah 5 — Jumlahkan atau kurangkan?</h3>
-              <div className="mt-3 overflow-x-auto rounded-xl bg-slate-50 p-3">
+              <div tabIndex={0} className="mt-3 overflow-x-auto rounded-xl bg-slate-50 p-3">
                 <EqRow eq={scaled.s1} label="(1')" highlight={elim!} />
                 <EqRow eq={scaled.s2} label="(2')" highlight={elim!} />
               </div>
@@ -804,7 +804,7 @@ export function EliminationSim() {
               <p className="mt-2 text-sm text-ink-muted">
                 <strong>Tujuan:</strong> mendapatkan persamaan satu variabel, lalu menghitung nilainya.
               </p>
-              <div className="mt-3 overflow-x-auto rounded-xl bg-slate-50 p-3">
+              <div tabIndex={0} className="mt-3 overflow-x-auto rounded-xl bg-slate-50 p-3">
                 <EqRow eq={scaled.s1} label="(1')" />
                 <EqRow eq={scaled.s2} label="(2')" />
                 <div className="my-1 flex items-center gap-2">
@@ -908,7 +908,7 @@ export function EliminationSim() {
                 })}
               </div>
               {otherInfo && (
-                <div className="mt-3 overflow-x-auto rounded-xl bg-slate-50 p-3 font-mono text-[0.95rem] leading-relaxed">
+                <div tabIndex={0} className="mt-3 overflow-x-auto rounded-xl bg-slate-50 p-3 font-mono text-[0.95rem] leading-relaxed">
                   <p>{formatEquation(otherInfo.eq)}</p>
                   <p>
                     {elim === "x" ? `${fmtTerm(otherInfo.oc, "x", true)} ${otherInfo.kc < 0 ? "−" : "+"} ${Math.abs(otherInfo.kc)}·(${formatValue(scaled.keepValue)})` : `${formatNumber(otherInfo.kc)}·(${formatValue(scaled.keepValue)}) ${otherInfo.oc < 0 ? "−" : "+"} ${Math.abs(otherInfo.oc) === 1 ? "" : Math.abs(otherInfo.oc)}y`}{" "}
@@ -1048,7 +1048,7 @@ export function EliminationSim() {
                 </p>
               )}
               {(!bothUsable || guess !== "") && (
-              <div className="mt-3 overflow-x-auto" data-testid="plan-comparison">
+              <div tabIndex={0} className="mt-3 overflow-x-auto" data-testid="plan-comparison">
                 <table className="w-full text-left text-sm">
                   <caption className="mb-1 text-left text-xs font-semibold text-ink-muted">Perbandingan rencana: mengeliminasi x atau y</caption>
                   <thead className="text-xs text-ink-muted">

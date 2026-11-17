@@ -2,6 +2,10 @@
 
 MathQuest adalah website pembelajaran matematika interaktif untuk siswa **SMP kelas VIII** dengan fokus materi **Sistem Persamaan Linear Dua Variabel (SPLDV)** dan **metode eliminasi**. Siswa dapat langsung belajar **tanpa membuat akun** (Guest Mode); login email bersifat opsional untuk menyimpan progres secara online (Email Mode).
 
+Rancangan pembelajarannya mengacu pada pendekatan **Rigorous Mathematical Thinking (RMT)** (Kinard & Kozulin): *Learning Activity* (analisis tugas → perencanaan tindakan → refleksi), fungsi kognitif matematis, alat psikologis (tabel, grafik, persamaan yang saling terhubung), dan pengalaman belajar termediasi. **Catatan jujur:** pemetaan RMT pada fitur adalah *interpretasi pengembang*, bukan klaim buku. MathQuest **tidak** menggantikan mediasi guru, bukan penerapan penuh LPAD, dan **belum membuktikan efektivitas** RMT secara empiris; media ini disiapkan untuk uji coba terbatas. Tutor memakai aturan matematika (tanpa LLM, tanpa API berbayar); seluruh aplikasi berbiaya Rp0.
+
+> **Dokumentasi lanjutan** ada di folder [`docs/`](docs/): [panduan demo dan uji coba](docs/panduan-demo-uji-coba.md) · [asesmen dan ekspor CSV (Tahap 5)](docs/tahap5-asesmen-ekspor.md) · [data Guest Mode](docs/guest-data.md) · [Lab dan Learning Activity (Tahap 3)](docs/rmt-tahap3-penerapan.md) · [materi, soal, permainan (Tahap 4)](docs/rmt-tahap4-penerapan.md).
+
 ## 1. Tujuan
 
 - Membantu siswa memahami konsep SPLDV secara bertahap, dari PLDV sampai soal cerita.
@@ -14,14 +18,16 @@ MathQuest adalah website pembelajaran matematika interaktif untuk siswa **SMP ke
 
 | Fitur | Isi |
 |---|---|
-| **Materi** | 7 modul. Setiap modul memuat tujuan, penjelasan konsep, istilah penting, konteks + ilustrasi, contoh soal langkah demi langkah, kesimpulan, dan mini quiz (lulus ≥ 60). |
-| **SPLDV Lab** | *Simulasi Eliminasi* 8 langkah interaktif (pilih variabel → tentukan pengali → kalikan → pilih operasi → eliminasi → substitusi → periksa) dengan penjelasan "Mengapa?" dan petunjuk bertahap; *Uji Pasangan* (cek apakah (x, y) memenuhi kedua persamaan, lengkap dengan langkah substitusi); *Grafik* dua garis dengan slider koefisien, titik potong, serta misi sejajar/berimpit. |
-| **Latihan** | 42 soal, 3 tingkat kesulitan, 4 tipe input (pilihan ganda, benar/salah, isian angka, isian pasangan) dan bentuk soal: konsep, melengkapi langkah, memilih operasi, pasangan penyelesaian, model, soal cerita. Petunjuk bertahap, umpan balik, pembahasan. |
-| **Evaluasi Akhir** | 30 soal di bank server; jumlah soal (10/15/20/30) & timer (tanpa/10/20/30 menit) dapat diatur; navigasi & tanda soal; **kunci jawaban tidak pernah dikirim ke browser**; dinilai server; pembahasan setelah dikumpulkan. |
-| **7 Game** | Detektif Variabel (investigasi petunjuk), Misi Belanja (nota & anggaran), Eliminasi Kilat (balapan waktu + combo), Pasangkan Istilah (mencocokkan), Tantangan SPLDV (10 tingkat + 3 nyawa), Susun Langkah Eliminasi (mengurutkan kartu), Tebak Nilai Variabel (sinyal terlalu besar/kecil). |
-| **Gamifikasi** | XP, 10 level, 12 badge, aturan anti-farming (soal yang sudah memberi XP tidak memberi XP lagi; batas harian untuk game, evaluasi, lab). |
-| **Dashboard** | XP, level, progres belajar, materi selesai, nilai evaluasi, latihan, ketepatan jawaban, grafik XP & nilai, rekomendasi, aktivitas terbaru, badge. |
-| **Riwayat & Profil** | Tabel hasil (filter jenis) dan log aktivitas; ubah nama panggilan, info mode akses, keluar akun, atur ulang progres lokal. |
+| **Materi** | 7 modul: tujuan, penjelasan konsep, istilah, konteks, contoh langkah demi langkah, representasi tabel–persamaan–grafik yang saling terhubung, blok "Pikirkan dulu" (prediksi), mini quiz (lulus ≥ 60), dan refleksi. |
+| **Tutor berbasis aturan** | Diagnosis kesalahan dari pola jawaban (tanpa LLM), petunjuk bertingkat **L1–L4**, kesempatan mencoba kembali sebelum jawaban akhir, penjelasan sesuai proses siswa. |
+| **SPLDV Lab** | *Simulasi Eliminasi* (9 langkah dengan **Learning Activity**: analisis tugas → perencanaan → prediksi → eliminasi → periksa → refleksi, plus grafik terhubung dan perbandingan strategi); *Uji Pasangan* (prediksi dulu, lalu uji); *Grafik* dengan slider koefisien. |
+| **Latihan** | 42 soal awal + 16 soal pengembangan RMT (Tahap 4), 3 tingkat, 4 tipe input; petunjuk bertingkat, umpan balik, pembahasan. |
+| **Evaluasi Akhir** | 30 soal di server; jumlah (10/15/20/30) dan timer dapat diatur; **kunci jawaban tidak pernah dikirim ke browser**; dinilai server; pembahasan setelah dikumpulkan. |
+| **Pretest dan Posttest** | Dua formulir paralel A/B (12 butir, 2 butir per kompetensi), urutan diimbangi dari kode peserta, dinilai server, kunci tidak dikirim ke browser, 0 XP, sekali per jenis. Lihat [docs/tahap5-asesmen-ekspor.md](docs/tahap5-asesmen-ekspor.md). |
+| **Ekspor Data** | Kode peserta anonim + kode kelompok; unduh ZIP/CSV (Excel-friendly) dari perangkat tanpa login; alat gabung CSV banyak perangkat. Halaman `/ekspor`. |
+| **7 Game** | Detektif Variabel, Misi Belanja, Eliminasi Kilat, Pasangkan Istilah, Tantangan SPLDV, Susun Langkah Eliminasi, Tebak Nilai Variabel (dengan prediksi dan refleksi). |
+| **Gamifikasi** | XP, 10 level, badge. Kebijakan XP: percobaan ke-1 = 100%, ke-2 = 50%, ke-3 dan seterusnya = 0; XP sekali per soal; XP **tidak pernah berkurang** karena salah atau petunjuk; refleksi 0 XP; Lab maksimal 15 XP per alat per hari. |
+| **Dashboard, Riwayat, Profil** | Ringkasan progres, grafik, rekomendasi, riwayat, nama panggilan (tidak diekspor), atur ulang progres lokal. |
 
 ## 3. Teknologi
 
@@ -33,9 +39,9 @@ Next.js 15 (App Router) · TypeScript · Tailwind CSS 3 · Supabase (Auth + Post
 ├─ src/
 │  ├─ app/
 │  │  ├─ page.tsx                 Landing page
-│  │  ├─ (app)/                   Halaman aplikasi (dashboard, materi, lab, latihan,
-│  │  │                           games, evaluasi, pencapaian, riwayat, profil, masuk)
-│  │  ├─ api/                     API server: progress, evaluation, profile
+│  │  ├─ (app)/                   Halaman aplikasi (dashboard, materi, lab, latihan, games,
+│  │  │                           evaluasi, asesmen, ekspor, pencapaian, riwayat, profil, masuk)
+│  │  ├─ api/                     API server: progress, evaluation, assessment, profile
 │  │  └─ auth/callback/           Tujuan magic link email
 │  ├─ components/                 UI, lab, quiz, games, provider (progres & toast)
 │  ├─ content/                    Materi, bank soal latihan, daftar game
@@ -43,16 +49,19 @@ Next.js 15 (App Router) · TypeScript · Tailwind CSS 3 · Supabase (Auth + Post
 │  │  ├─ math/                    Pecahan eksak, solver & perencana eliminasi SPLDV
 │  │  ├─ progress/                Engine XP/level/badge, penilaian event, migrasi
 │  │  ├─ questions/               Tipe soal & penilai jawaban
-│  │  ├─ storage/local.ts         Penyimpanan Guest Mode (localStorage)
+│  │  ├─ tutor/, lab/, games/     Tutor aturan (L1–L4), Learning Activity, metrik permainan
+│  │  ├─ assessment/, research/   Cetak biru A/B, kode peserta; penyimpanan, CSV, ZIP, gabung data
+│  │  ├─ storage/                 Guest Mode (localStorage), pruning event, cadangan data rusak
 │  │  └─ supabase/                Konfigurasi & klien browser
-│  ├─ server/                     Kode khusus server: bank soal evaluasi (server-only),
-│  │                              repositori database, klien service role
+│  ├─ server/                     Kode khusus server: bank soal evaluasi dan asesmen (server-only),
+│  │                              pembatas laju, repositori database, klien service role
 │  └─ middleware.ts               Penyegar sesi Supabase (tidak aktif tanpa konfigurasi)
 ├─ supabase/
 │  ├─ migrations/0001_init.sql    Skema tabel + RLS + trigger
 │  ├─ migrations/0002_rmt_pilot.sql  Tambahan pilot RMT (kolom detail + tabel learning_records)
 │  └─ seed.sql                    Data materi, soal, game, pencapaian (dibuat otomatis)
 ├─ scripts/generate-seed.ts       Pembuat seed.sql dari konten aplikasi
+├─ docs/                          Dokumentasi tahap, panduan demo/uji coba, data Guest Mode
 ├─ tests/                         Unit test (Vitest)
 ├─ e2e/                           Test end-to-end (Playwright)
 └─ .env.example
@@ -118,16 +127,18 @@ Perintah lain:
 
 **Guest Mode:** di halaman awal klik **Mulai Belajar**. Semua fitur langsung terbuka. Progres tersimpan di browser perangkat itu; menghapus data browser atau berganti perangkat berarti progres lokal tidak dapat dipulihkan.
 
+**Pretest, posttest, dan ekspor (uji coba):** buka **Pretest/Posttest** di menu, buat **kode peserta** otomatis (atau pakai kode dari guru; jangan memakai nama asli), kerjakan pretest sebelum belajar dan posttest sesudahnya. Unduh data di **Ekspor Data** (ZIP berisi 7 CSV) di akhir setiap pertemuan. Panduan lengkap termasuk cadangan dan penggabungan: [docs/panduan-demo-uji-coba.md](docs/panduan-demo-uji-coba.md).
+
 **Email Mode:** klik **Simpan Progres** (atau menu Profil → Simpan progres online), masukkan email, lalu masukkan kode dari email atau klik tautannya. Progres Guest Mode di perangkat itu otomatis digabungkan. Keluar akun lewat halaman Profil.
 
 ## 8. Pengujian
 
 ```bash
-npm run lint && npm run typecheck && npm test   # 217 unit test
-npm run build && npm run test:e2e               # 34 test E2E (desktop + ponsel)
+npm run lint && npm run typecheck && npm test   # 339 unit test (18 berkas)
+npm run build && npm run test:e2e               # 70 test E2E (desktop + ponsel Pixel 7)
 ```
 
-Unit test memverifikasi secara otomatis **kebenaran matematis seluruh 100 soal** (sistem diselesaikan ulang dengan pecahan eksak), solver & perencana eliminasi, engine XP (anti-farming, batas harian, validasi skor game), dan aturan migrasi. Test E2E menjalankan alur nyata di Chromium: Guest Mode, mini quiz + persistensi setelah reload, simulasi eliminasi lengkap, uji pasangan, grafik, latihan, evaluasi (memastikan respons soal tidak berisi kunci), ketujuh game, profil, serta pemeriksaan tidak ada scroll horizontal pada layar ponsel.
+Unit test memverifikasi, antara lain, kebenaran matematis seluruh bank soal (sistem diselesaikan ulang dengan pecahan eksak), solver dan perencana eliminasi, kebijakan XP (percobaan, anti-farming, batas harian), tutor dan petunjuk L1–L4 (termasuk tidak membocorkan jawaban), metrik Learning Activity, kesetaraan formulir pretest/posttest A/B, penilaian asesmen, CSV/ZIP/penggabungan/proteksi rumus, pruning event Guest, pembatas laju, dan migrasi. E2E menjalankan alur nyata di Chromium: Guest Mode, materi, latihan, Lab (Learning Activity), tujuh game, evaluasi (respons soal tanpa kunci), pretest/posttest, ekspor dan gabung data, perlindungan data rusak, aksesibilitas dasar, persistensi setelah reload, tanpa scroll horizontal di ponsel, serta **alur siswa awal–akhir** di desktop dan mobile (`e2e/journey*.spec.ts`). Panduan menjalankan dan memahami hasil: [docs/panduan-demo-uji-coba.md](docs/panduan-demo-uji-coba.md).
 
 Email Mode memerlukan proyek Supabase sungguhan untuk diuji end-to-end; uji manual: login → kerjakan mini quiz → buka dari browser lain dan login dengan email yang sama → progres muncul.
 
@@ -155,4 +166,5 @@ git push -u origin main
 
 - **Halaman administrator** (opsional dalam spesifikasi) belum dibuat. Konten dikelola di `src/content/*.ts` dan `src/server/evaluation-bank.ts`; jalankan `npm run seed:generate` agar tabel katalog di database ikut diperbarui. Variabel `ADMIN_EMAILS` sudah disiapkan untuk pengembangan halaman admin.
 - Progres Guest Mode di browser pada dasarnya dapat diubah oleh pengguna sendiri (hanya memengaruhi perangkatnya). Saat dimigrasikan ke akun, seluruh event dinilai ulang server sehingga data palsu tidak ikut terbawa.
-- Pembatasan laju (rate limiting) API belum diterapkan; untuk penggunaan publik skala besar, tambahkan di level platform (mis. Vercel Firewall).
+- Pembatasan laju: `/api/assessment/submit` memakai pembatas laju sederhana di memori server (60 pengiriman/10 menit per alamat; longgar bagi satu kelas). Pada hosting serverless ini bersifat *sebaik mungkin* per instance, bukan jaminan mutlak. Untuk penggunaan publik skala besar, tambahkan di level platform (mis. Vercel Firewall). Opsi penguatan: [docs/panduan-demo-uji-coba.md](docs/panduan-demo-uji-coba.md#6-risiko-yang-tersisa).
+- Dependensi: status `npm audit` dan rekomendasi penanganan dicatat di [docs/panduan-demo-uji-coba.md](docs/panduan-demo-uji-coba.md#5-status-dependensi-npm-audit).

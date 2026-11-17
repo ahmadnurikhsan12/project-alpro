@@ -1,5 +1,6 @@
 "use client";
 
+import { backupUnreadable, unreadableReason } from "@/lib/storage/backup";
 import type { AssessmentKind, AssessmentSkill, FormId } from "@/lib/assessment/blueprint";
 
 /**
@@ -64,15 +65,18 @@ function fresh(): ResearchData {
 }
 
 export function loadResearch(): ResearchData {
+  let raw: string | null = null;
   try {
-    const raw = window.localStorage.getItem(KEY);
+    raw = window.localStorage.getItem(KEY);
     if (raw) {
       const d = JSON.parse(raw) as ResearchData;
       if (d && d.version === 1 && typeof d.deviceId === "string" && Array.isArray(d.assessments)) return { ...d, participant: d.participant ?? null };
     }
   } catch {
-    /* rusak/diblokir: mulai baru */
+    /* rusak/diblokir: lihat di bawah */
   }
+  // Data ada tetapi tidak dapat dipakai (rusak/versi lain): salin ke cadangan SEBELUM ditimpa, lalu beri peringatan.
+  if (raw) backupUnreadable(KEY, raw, unreadableReason(raw));
   const d = fresh();
   saveResearch(d); // ID perangkat harus tetap sama pada pemuatan berikutnya
   return d;

@@ -100,7 +100,7 @@ export function AnalysisPanel({
           <caption className="sr-only">Tabel koefisien</caption>
           <thead>
             <tr className="text-xs text-ink-muted">
-              <th className="px-1" />
+              <th className="px-1"><span className="sr-only">Persamaan</span></th>
               <th className="px-1 font-mono">x</th>
               <th className="px-1 font-mono">y</th>
               <th className="px-1">konstanta</th>

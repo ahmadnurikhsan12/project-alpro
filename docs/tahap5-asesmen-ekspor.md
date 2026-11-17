@@ -38,6 +38,8 @@ Pengimbangan urutan: formulir pretest ditentukan dari kode peserta (jumlah kode 
 - `src/server/assessment-bank.ts` dan `assessment.ts` memakai `import "server-only"`: build gagal jika dipakai komponen browser.
 - API soal hanya mengirim butir publik (tanpa `answer`, `explanation`, `verify`, `hints`, kompetensi, atau nomor butir). Diuji unit dan E2E (isi respons jaringan).
 - Respons penilaian hanya memuat benar/salah per butir. Siswa teoretis dapat mengetahui butir mana yang benar setelah mengirim, tetapi tidak dapat mengulang asesmen yang sama di perangkat itu.
+- **Pembatasan percobaan (server).** `/api/assessment/submit` dibatasi 60 pengiriman per 10 menit per alamat klien (`src/server/rate-limit.ts`, di memori, tanpa layanan eksternal); kelebihannya dijawab HTTP 429 dengan `Retry-After`. Batas ini longgar bagi satu kelas yang berbagi IP sekolah. Keterbatasan: per instance server (hosting serverless tidak berbagi hitungan) dan tidak menghentikan percobaan manual yang lambat. Penguatan lebih lanjut dibahas di [panduan-demo-uji-coba.md](panduan-demo-uji-coba.md#6-risiko-yang-tersisa).
+- **Data lokal rusak.** Data asesmen dan progres yang rusak/berbeda versi tidak ditimpa: isi lama disalin ke kunci `*.backup-<waktu>` dan peringatan ditampilkan.
 
 ## 5. Kamus data CSV
 

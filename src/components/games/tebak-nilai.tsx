@@ -197,7 +197,7 @@ export function TebakNilai({ difficulty, onFinish }: GameProps) {
           {history.length === 0 ? (
             <p className="mt-3 text-sm text-ink-muted">Belum ada tebakan.</p>
           ) : (
-            <div className="mt-3 overflow-x-auto">
+            <div tabIndex={0} className="mt-3 overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs text-ink-muted">

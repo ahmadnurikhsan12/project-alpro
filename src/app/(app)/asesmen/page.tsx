@@ -282,7 +282,7 @@ export default function AsesmenPage() {
                 {done.correct} dari {done.total} soal benar
                 {pre ? ` · pretest ${pre.score} → posttest ${done.score}` : ""}
               </p>
-              <div className="mt-5 overflow-x-auto text-left">
+              <div tabIndex={0} className="mt-5 overflow-x-auto text-left">
                 <table className="w-full text-sm">
                   <caption className="mb-1 text-left text-xs font-semibold text-ink-muted">Hasil per kompetensi</caption>
                   <thead className="text-xs text-ink-muted">

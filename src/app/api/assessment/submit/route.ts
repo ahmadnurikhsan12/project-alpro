@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { FORMS } from "@/lib/assessment/blueprint";
 import { gradeAssessment } from "@/server/assessment";
+import { checkRateLimit, clientKey } from "@/server/rate-limit";
 import { handleError, jsonError, readJson, zodMessage } from "@/server/http";
 
 export const dynamic = "force-dynamic";
+
+/** Satu siswa hanya perlu 2 pengiriman (pretest dan posttest); 60 per 10 menit per alamat melindungi dari percobaan otomatis, longgar bagi satu kelas. */
+const LIMIT = 60;
+const WINDOW_MS = 10 * 60 * 1000;
 
 const submitSchema = z.object({
   form: z.enum(FORMS),
@@ -16,6 +21,12 @@ const submitSchema = z.object({
  * hanya jawaban butir. Respons berisi skor dan benar/salah per butir (tanpa kunci atau pembahasan).
  */
 export async function POST(req: Request) {
+  const rl = checkRateLimit(`assessment-submit:${clientKey(req)}`, LIMIT, WINDOW_MS);
+  if (!rl.allowed) {
+    const res = jsonError(429, "Terlalu banyak pengiriman dari jaringan ini. Tunggu beberapa menit, lalu coba lagi.");
+    res.headers.set("Retry-After", String(rl.retryAfterSec));
+    return res;
+  }
   try {
     const parsed = submitSchema.safeParse(await readJson(req));
     if (!parsed.success) return jsonError(400, zodMessage(parsed.error));

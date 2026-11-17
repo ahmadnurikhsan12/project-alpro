@@ -137,7 +137,7 @@ export function EmptyState({ icon, title, description, action }: { icon: ReactNo
 export function MathBlock({ lines, caption, className, highlight }: { lines: string[]; caption?: string; className?: string; highlight?: number[] }) {
   return (
     <figure className={cn("my-3", className)}>
-      <div className="overflow-x-auto rounded-xl border border-brand-100 bg-brand-50/60 px-4 py-3">
+      <div tabIndex={0} className="overflow-x-auto rounded-xl border border-brand-100 bg-brand-50/60 px-4 py-3">
         <pre className="font-mono text-[0.95rem] leading-relaxed text-ink">
           {lines.map((l, i) => (
             <div key={i} className={cn(highlight?.includes(i) && "font-bold text-brand-700")}>
@@ -210,7 +210,7 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
           onClick={() => onChange(o.value)}
           className={cn(
             "rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
-            value === o.value ? "bg-white text-brand-700 shadow-sm" : "text-ink-muted hover:text-ink",
+            value === o.value ? "bg-white text-brand-700 shadow-sm" : "text-ink-soft hover:text-ink",
           )}
         >
           {o.label}

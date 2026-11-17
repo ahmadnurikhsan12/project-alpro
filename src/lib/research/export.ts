@@ -252,7 +252,7 @@ export function buildTables(input: ExportInput): Tables {
     sessions, questionsDone, attempts, hints, independent,
     reflFilled, reflSkipped,
     labRuns, labPlanMax, labPredOk, labPredTotal, gamePredOk, gamePredTotal,
-    state.counters.bestEvaluation || "",
+    state.counters.evaluations > 0 ? state.counters.bestEvaluation : "",
     state.xp, events.length, bool(near), now,
   ]);
 

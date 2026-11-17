@@ -86,7 +86,7 @@ function Block({ block }: { block: ContentBlock }) {
       return <ThinkBlock question={block.question} options={block.options} correct={block.correct} explain={block.explain} />;
     case "table":
       return (
-        <div className="my-4 overflow-x-auto" data-testid="lesson-table">
+        <div tabIndex={0} className="my-4 overflow-x-auto" data-testid="lesson-table">
           <table className="w-full min-w-[18rem] text-left text-sm">
             <caption className="mb-2 text-left text-xs font-semibold text-ink-muted">{block.caption}</caption>
             <thead className="bg-slate-50 text-xs text-ink-muted">

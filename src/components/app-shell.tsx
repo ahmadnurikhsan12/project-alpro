@@ -25,6 +25,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { levelFromXp } from "@/lib/progress/gamification";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
+import { StorageWarningBanner } from "./storage-warning";
 import { useProgress } from "./providers/progress-provider";
 import { Button, ProgressBar } from "./ui";
 
@@ -187,6 +188,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <main id="konten" className="min-w-0 flex-1 px-4 pb-28 pt-5 sm:px-6 lg:px-10 lg:pb-12 lg:pt-8">
         <div className="mx-auto max-w-6xl">
+          <StorageWarningBanner />
           <StatusBanners />
           {children}
         </div>

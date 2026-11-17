@@ -43,12 +43,12 @@ function LabContent() {
             onClick={() => router.replace(`/lab?tab=${id}`, { scroll: false })}
             className={cn(
               "flex flex-col items-center gap-0.5 rounded-xl px-2 py-2.5 text-center transition sm:flex-row sm:justify-center sm:gap-2",
-              tab === id ? "bg-white text-brand-700 shadow-sm" : "text-ink-muted hover:text-ink",
+              tab === id ? "bg-white text-brand-700 shadow-sm" : "text-ink-soft hover:text-ink",
             )}
           >
             <Icon className="h-5 w-5" />
             <span className="text-xs font-bold sm:text-sm">{label}</span>
-            <span className="hidden text-xs text-ink-muted xl:inline">· {desc}</span>
+            <span className="hidden text-xs text-ink-soft xl:inline">· {desc}</span>
             {state.counters.labTools.includes(id) && <span className="sr-only">(sudah dicoba)</span>}
           </button>
         ))}

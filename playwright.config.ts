@@ -16,7 +16,7 @@ export default defineConfig({
     timeout: 120_000,
   },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] }, testIgnore: /(responsive|lab-mobile|stage4-mobile|stage5-mobile)/ },
-    { name: "mobile", use: { ...devices["Pixel 7"] }, testMatch: /(responsive|lab-mobile|stage4-mobile|stage5-mobile)/ },
+    { name: "desktop", use: { ...devices["Desktop Chrome"] }, testIgnore: /(responsive|lab-mobile|stage4-mobile|stage5-mobile|journey-mobile)/ },
+    { name: "mobile", use: { ...devices["Pixel 7"] }, testMatch: /(responsive|lab-mobile|stage4-mobile|stage5-mobile|journey-mobile)/ },
   ],
 });
