@@ -28,7 +28,7 @@ Alur demo yang disarankan (±15 menit):
 - Data tersimpan **hanya di browser pada perangkat itu** (localStorage). Satu siswa = satu perangkat/profil browser, dan jangan memakai mode penyamaran.
 - Jangan menghapus "data situs/riwayat". Itu menghapus progres, hasil asesmen, dan kode peserta.
 - **Kode peserta**: otomatis (`MQ-xxxxxx`) atau dari guru (mis. `KLS1-07`). Jangan memakai nama atau nomor induk. Kode terkunci setelah pretest/posttest tercatat. Kode kelompok (opsional, ≤8 karakter) untuk kelas.
-- **Pretest** sebelum belajar, **posttest** sesudahnya. Formulir A/B ditentukan otomatis dari kode (posttest memakai formulir lain). Tiap jenis hanya sekali; skor pretest tidak ditampilkan.
+- **Pretest** sebelum belajar, **posttest** sesudahnya. Formulir A/B ditentukan otomatis dari kode (posttest memakai formulir lain). Tiap jenis hanya sekali. Hasil (skor pretest, posttest, selisih, profil kompetensi) langsung tampil di halaman Pretest/Posttest, tanpa perlu mengunduh.
 - **Batas 1000 event** per perangkat; peringatan muncul di halaman Ekspor pada 90%.
 - Jika data lokal **rusak atau berasal dari versi aplikasi lain**, aplikasi **tidak menimpanya**: isi lama disalin ke kunci cadangan `...backup-<waktu>` dan banner peringatan tampil. Jangan menghapus data situs; hubungi guru/peneliti agar cadangan dapat diselamatkan (mis. lewat DevTools → Application → Local Storage).
 

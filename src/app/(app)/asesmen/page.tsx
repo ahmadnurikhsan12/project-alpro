@@ -2,10 +2,11 @@
 
 import { ArrowLeft, ArrowRight, CheckCircle2, ClipboardList, Download, Send } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ResultsCard } from "@/components/research/results-card";
 import { ParticipantCard } from "@/components/research/participant-card";
 import { QuestionView } from "@/components/quiz/question-view";
 import { Badge, Button, ButtonLink, Card, PageHeader, ProgressBar, Spinner } from "@/components/ui";
-import { ASSESSMENT_KIND_LABEL, ASSESSMENT_SKILLS, SKILL_LABEL, formsFor, type AssessmentKind, type AssessmentSkill, type FormId } from "@/lib/assessment/blueprint";
+import { ASSESSMENT_KIND_LABEL, formsFor, type AssessmentKind, type AssessmentSkill, type FormId } from "@/lib/assessment/blueprint";
 import { isAnswerEmpty } from "@/lib/questions/grade";
 import type { PublicQuestion } from "@/lib/questions/types";
 import { addAssessment, loadResearch, newRecordId, type AssessmentRecord, type ResearchData } from "@/lib/research/store";
@@ -198,6 +199,7 @@ export default function AsesmenPage() {
                 </Card>
               );
             })}
+            {research && research.assessments.length > 0 && <ResultsCard assessments={research.assessments} />}
             {research && research.assessments.length > 0 && (
               <ButtonLink href="/ekspor" variant="outline">
                 <Download className="h-4 w-4" /> Ekspor data (CSV)
@@ -271,46 +273,17 @@ export default function AsesmenPage() {
           <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
           <h2 className="mt-3 text-xl font-extrabold text-ink">{done.kind === "pretest" ? "Pretest selesai" : "Posttest selesai"}</h2>
           <p className="mt-1 text-sm text-ink-muted">Hasil tersimpan di perangkat ini. Lama mengerjakan: {formatDuration(done.durationSec)}.</p>
-          {done.kind === "pretest" ? (
-            <p className="mt-4 text-ink-soft">Terima kasih! Skor pretest tidak ditampilkan agar tidak memengaruhi belajarmu. Selamat belajar di MathQuest.</p>
-          ) : (
-            <>
-              <p className="mt-4 text-5xl font-extrabold tabular-nums text-brand-700" data-testid="posttest-score">
-                {done.score}
-              </p>
-              <p className="text-sm text-ink-muted">
-                {done.correct} dari {done.total} soal benar
-                {pre ? ` · pretest ${pre.score} → posttest ${done.score}` : ""}
-              </p>
-              <div tabIndex={0} className="mt-5 overflow-x-auto text-left">
-                <table className="w-full text-sm">
-                  <caption className="mb-1 text-left text-xs font-semibold text-ink-muted">Hasil per kompetensi</caption>
-                  <thead className="text-xs text-ink-muted">
-                    <tr>
-                      <th className="py-1 pr-2">Kompetensi</th>
-                      {pre && <th className="py-1 pr-2">Pretest</th>}
-                      <th className="py-1">Posttest</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ASSESSMENT_SKILLS.map((s) => (
-                      <tr key={s} className="border-t border-slate-100">
-                        <td className="py-1.5 pr-2">{SKILL_LABEL[s]}</td>
-                        {pre && (
-                          <td className="py-1.5 pr-2 font-mono">
-                            {pre.bySkill[s].correct}/{pre.bySkill[s].total}
-                          </td>
-                        )}
-                        <td className="py-1.5 font-mono">
-                          {done.bySkill[s].correct}/{done.bySkill[s].total}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
+          <p className="mt-4 text-5xl font-extrabold tabular-nums text-brand-700" data-testid={`${done.kind}-score`}>
+            {done.score}
+          </p>
+          <p className="text-sm text-ink-muted">
+            {done.correct} dari {done.total} soal benar
+            {done.kind === "posttest" && pre ? ` · pretest ${pre.score} → posttest ${done.score}` : ""}
+          </p>
+          {done.kind === "pretest" && <p className="mt-2 text-sm text-ink-soft">Ini gambaran awalmu, bukan nilai. Selamat belajar di MathQuest, lalu kerjakan posttest setelah selesai belajar.</p>}
+          <div className="mt-4 text-left">
+            <ResultsCard assessments={[...(research?.assessments.filter((x) => x.id !== done.id) ?? []), done]} title="Hasil per kompetensi" />
+          </div>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             <Button variant="outline" onClick={() => setPhase("menu")}>
               Kembali ke menu asesmen

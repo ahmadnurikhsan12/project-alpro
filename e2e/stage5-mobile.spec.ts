@@ -39,6 +39,7 @@ test("mobile: kode peserta, pretest, posttest dengan ketukan", async ({ page }) 
   await noOverflow(page, "pretest selesai");
   await completeAssessment(page, code, "posttest", { tap: true });
   await expect(page.getByTestId("posttest-score")).toHaveText("100");
+  await expect(page.getByTestId("result-delta")).toHaveText("+8");
   await noOverflow(page, "posttest selesai (tabel kompetensi)");
   await controlsReachable(page, "posttest selesai");
   const d = await researchData(page);

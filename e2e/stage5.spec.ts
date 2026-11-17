@@ -32,8 +32,12 @@ test("pretest dan posttest end-to-end: kode anonim, penilaian server, tanpa kebo
 
   // ---- pretest: 2 butir salah (slot 1 dan 12) → 10/12 = 83
   const preForm = await completeAssessment(page, code, "pretest", { wrongSlots: [1, 12] });
-  await expect(page.getByTestId("asesmen-done")).toContainText("Skor pretest tidak ditampilkan");
+  // hasil langsung tampil di halaman (tanpa unduh): skor pretest dan profil kompetensi, tanpa benar/salah per butir
+  await expect(page.getByTestId("pretest-score")).toHaveText("83");
   await expect(page.getByTestId("posttest-score")).toHaveCount(0);
+  await expect(page.getByTestId("result-pretest-score")).toHaveText("83");
+  await expect(page.getByTestId("result-posttest-score")).toHaveText("—");
+  await expect(page.getByTestId("results-card")).toContainText("Hasil per kompetensi");
   let data = await researchData(page);
   expect(data.participant?.code).toBe(code);
   expect(data.assessments).toHaveLength(1);
@@ -51,6 +55,12 @@ test("pretest dan posttest end-to-end: kode anonim, penilaian server, tanpa kebo
   expect(postForm).not.toBe(preForm);
   await expect(page.getByTestId("posttest-score")).toHaveText("100");
   await expect(page.getByTestId("asesmen-done")).toContainText("pretest 83 → posttest 100");
+  await expect(page.getByTestId("result-pretest-score")).toHaveText("83");
+  await expect(page.getByTestId("result-posttest-score")).toHaveText("100");
+  await expect(page.getByTestId("result-delta")).toHaveText("+17");
+  // hasil juga muncul di menu asesmen kapan saja, tanpa membuka halaman Ekspor
+  await page.getByRole("button", { name: "Kembali ke menu asesmen" }).click();
+  await expect(page.getByTestId("results-card")).toContainText("naik");
   data = await researchData(page);
   expect(data.assessments.map((a) => a.kind)).toEqual(["pretest", "posttest"]);
   expect(data.assessments[1]).toMatchObject({ form: postForm, score: 100, correct: 12 });

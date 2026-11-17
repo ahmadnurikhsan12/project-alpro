@@ -31,7 +31,7 @@ Pengimbangan urutan: formulir pretest ditentukan dari kode peserta (jumlah kode 
 - 1 poin per butir benar; **tanpa nilai parsial** dan tanpa pengurangan untuk salah/kosong. Butir kosong dinilai salah dan dicatat terpisah (`dijawab` = 0).
 - Setiap jawaban dinilai oleh fungsi `gradeAnswer` yang sama dengan Latihan dan Evaluasi Akhir (pecahan dinormalisasi; pasangan (x, y) harus tepat).
 - Skor = benar ÷ 12 × 100, dibulatkan (`scoreOf`). Subskor per kompetensi (0–2).
-- Skor pretest tidak ditampilkan ke siswa; skor posttest dan profil kompetensinya ditampilkan.
+- Hasil langsung tampil di halaman asesmen (tanpa unduh): skor pretest, skor posttest, selisih, dan profil per kompetensi (kartu "Hasil saya", tersedia kapan saja di menu asesmen). Yang tidak ditampilkan: kunci jawaban dan benar/salah per butir.
 
 ## 4. Keamanan kunci jawaban
 
