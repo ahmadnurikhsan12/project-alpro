@@ -9,7 +9,50 @@ export interface ReflectionCopy {
   scaleLabels?: [string, string];
 }
 
+/**
+ * Kunci: id prompt, atau "konteks/id" bila teksnya berbeda per konteks (mis. "keyakinan").
+ * `copyFor` mencari "konteks/id" lebih dulu.
+ */
 export const REFLECTION_COPY: Record<string, ReflectionCopy> = {
+  "tebak_nilai/keyakinan": { question: "Seberapa yakin kamu dapat menemukan pasangan rahasia dengan lebih sedikit tebakan lain kali?", scaleLabels: ["Belum yakin", "Sangat yakin"] },
+  "eliminasi_kilat/keyakinan": { question: "Seberapa yakin kamu pada ketelitianmu saat dikejar waktu?", scaleLabels: ["Belum yakin", "Sangat yakin"] },
+  "lesson/keyakinan": { question: "Seberapa yakin kamu dapat menjelaskan materi ini kepada temanmu dengan kata-katamu sendiri?", scaleLabels: ["Belum yakin", "Sangat yakin"] },
+  strategi: {
+    question: "Strategi apa yang paling sering kamu pakai untuk menebak pasangan rahasia?",
+    options: { substitusi: "Menghitung dengan substitusi", penyesuaian_sinyal: "Menyesuaikan dari sinyal tebakan sebelumnya", eliminasi: "Memakai eliminasi", menebak: "Menebak saja" },
+  },
+  prediksi_membantu: {
+    question: "Apakah memprediksi sebelum menebak membantumu?",
+    options: { sangat: "Sangat membantu", sedikit: "Sedikit membantu", tidak: "Tidak membantu" },
+  },
+  sinyal_membantu: {
+    question: "Apakah sinyal terlalu kecil atau terlalu besar membantumu mendekati jawaban?",
+    options: { sangat: "Sangat membantu", sedikit: "Sedikit membantu", tidak: "Tidak membantu" },
+  },
+  prioritas: {
+    question: "Pada permainan tadi, mana yang lebih kamu utamakan?",
+    options: { cepat: "Kecepatan", teliti: "Ketelitian", seimbang: "Keduanya seimbang" },
+  },
+  penyebab_salah: {
+    question: "Jika ada jawabanmu yang salah, apa penyebab yang paling mungkin?",
+    options: { terburu: "Terburu-buru", konsep: "Konsepnya belum jelas", hitung: "Salah hitung", tidak_ada_salah: "Tidak ada yang salah" },
+  },
+  strategi_berikutnya: {
+    question: "Pada permainan berikutnya, apa yang akan kamu lakukan?",
+    options: { pelan_dulu: "Lebih pelan agar teliti", periksa_ulang: "Memeriksa ulang sebelum menjawab", tetap_cepat: "Tetap secepat ini" },
+  },
+  penjelasan_sendiri: {
+    question: "Dapatkah kamu menjelaskan ide utama materi ini dengan kata-katamu sendiri?",
+    options: { lengkap: "Ya, dengan lengkap", sebagian: "Sebagian saja", belum: "Belum bisa" },
+  },
+  representasi_membantu: {
+    question: "Bentuk penyajian mana yang paling membantumu memahami materi ini?",
+    options: { tabel: "Tabel", persamaan: "Persamaan", grafik: "Grafik", ketiganya: "Ketiganya saling melengkapi", belum_jelas: "Belum jelas bagiku" },
+  },
+  bagian_sulit: {
+    question: "Bagian mana dari materi ini yang paling sulit bagimu?",
+    options: { konsep: "Memahami konsepnya", langkah: "Mengingat langkah-langkahnya", hitungan: "Menghitungnya", istilah: "Memahami istilahnya", tidak_ada: "Tidak ada yang sulit" },
+  },
   bagian_menantang: {
     question: "Bagian mana yang paling menantang bagimu?",
     options: {
@@ -66,3 +109,8 @@ export const REFLECTION_COPY: Record<string, ReflectionCopy> = {
   },
   keyakinan_prediksi: { question: "Seberapa yakin kamu pada prediksimu sebelum diuji?", scaleLabels: ["Belum yakin", "Sangat yakin"] },
 };
+
+/** Teks refleksi untuk sebuah prompt pada sebuah konteks (konteks lebih spesifik didahulukan). */
+export function copyFor(context: string, id: string): ReflectionCopy | undefined {
+  return REFLECTION_COPY[`${context}/${id}`] ?? REFLECTION_COPY[id];
+}

@@ -1,7 +1,8 @@
 import type { QuestionMediation, SkillCode, TransferPrompt } from "@/lib/tutor/types";
+import { RMT_MEDIATION } from "./mediation-rmt";
 
 /**
- * METADATA TUTOR untuk soal pilot Modul 4–6 (25 soal latihan + 12 soal mini quiz).
+ * METADATA TUTOR untuk soal pilot Modul 4–6 (25 soal latihan + 12 soal mini quiz; ditambah 16 soal RMT di mediation-rmt.ts).
  *
  * Hanya memuat hal yang tidak dapat diturunkan dari soal itu sendiri: keterampilan, apa
  * yang ditanyakan (target) agar jawaban keliru khas dapat dikenali, dan pola kesalahan
@@ -25,7 +26,7 @@ const hitung = (target: QuestionMediation["target"], extra: Partial<QuestionMedi
 });
 const periksa = (): QuestionMediation => ({ phase: "output", skill: "periksa_solusi" });
 
-export const MEDIATION_BY_ID: Record<string, QuestionMediation> = {
+const BASE_MEDIATION: Record<string, QuestionMediation> = {
   // ------------------------------------------------------------ Modul 4 — memilih operasi
   "p-m-06": operasi("y", { b: "salah_operasi", c: "kalikan_tidak_perlu", d: "operasi_bukan_eliminasi" }),
   "p-m-07": operasi("y", { a: "salah_operasi", c: "kalikan_tidak_perlu", d: "kira_tidak_bisa_dieliminasi" }),
@@ -174,6 +175,9 @@ export const MEDIATION_BY_ID: Record<string, QuestionMediation> = {
     },
   },
 };
+
+/** Metadata soal pilot = soal dasar (37) + 16 soal RMT (Tahap 4). */
+export const MEDIATION_BY_ID: Record<string, QuestionMediation> = { ...BASE_MEDIATION, ...RMT_MEDIATION };
 
 /** Pertanyaan transfer (aturan umum) yang ditampilkan setelah soal terjawab benar. Tidak dinilai dan tidak memberi XP. */
 export const TRANSFER_BY_SKILL: Partial<Record<SkillCode, TransferPrompt>> = {

@@ -27,6 +27,8 @@ export interface GameMeta {
   minSecondsPerItem: number;
   color: "brand" | "grape" | "emerald" | "amber" | "rose" | "sky" | "orange";
   difficultyNote: Record<Difficulty, string>;
+  /** Refleksi pascapermainan (Tahap 4); jawaban hanya pilihan/skala, 0 XP, boleh dilewati. */
+  reflection?: { context: "tebak_nilai" | "eliminasi_kilat"; promptIds: string[] };
 }
 
 export const GAMES: GameMeta[] = [
@@ -93,12 +95,14 @@ export const GAMES: GameMeta[] = [
       "Sebuah SPLDV muncul bersama pertanyaan singkat: operasi apa, pengali berapa, atau nilai variabel.",
       "Pilih jawaban secepat mungkin sebelum waktu habis.",
       "Jawaban benar beruntun memberi bonus combo.",
+      "Setelah bermain, kamu diajak membandingkan kecepatan dan ketelitianmu (boleh dilewati).",
     ],
     rules: [
       "Waktu: 90 detik (mudah), 75 detik (sedang), 60 detik (sulit).",
       "Benar: +10 poin + bonus combo (maks +5). Salah: combo kembali 0 dan waktu berkurang 3 detik.",
     ],
     scoring: "Semakin cepat dan teliti, semakin tinggi skornya.",
+    reflection: { context: "eliminasi_kilat", promptIds: ["prioritas", "penyebab_salah", "strategi_berikutnya", "keyakinan"] },
     maxScore: 900,
     targetScore: 300,
     maxTotal: 60,
@@ -195,14 +199,16 @@ export const GAMES: GameMeta[] = [
     mechanic: "Tebak & sinyal",
     howTo: [
       "Komputer menyembunyikan pasangan (x, y) yang memenuhi sebuah SPLDV.",
-      "Masukkan tebakanmu. Untuk setiap persamaan, kamu akan diberi tahu apakah ruas kirinya terlalu besar, terlalu kecil, atau tepat.",
+      "Sebelum mencoba, perkirakan dulu: untuk setiap persamaan, apakah ruas kiri tebakanmu akan terlalu kecil, tepat, atau terlalu besar? Pilih juga alasanmu.",
+      "Setelah itu masukkan tebakan. Hasilnya dibandingkan dengan perkiraanmu.",
       "Gunakan sinyal itu (atau eliminasi!) untuk menemukan jawabannya.",
     ],
     rules: [
       "Ada 3 ronde, masing-masing maksimal 8 tebakan.",
       "Nilai ronde: 100 − 10 × (tebakan − 1), minimal 10. Gagal dalam 8 tebakan: 0 poin.",
     ],
-    scoring: "Maksimal 300 poin.",
+    scoring: "Maksimal 300 poin. Prediksi dan alasan tidak mengubah skor; keduanya melatihmu berpikir sebelum mencoba.",
+    reflection: { context: "tebak_nilai", promptIds: ["strategi", "prediksi_membantu", "sinyal_membantu", "keyakinan"] },
     maxScore: 300,
     targetScore: 300,
     maxTotal: 3,

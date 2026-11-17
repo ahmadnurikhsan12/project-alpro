@@ -18,6 +18,7 @@ import {
   savePending,
   type GuestData,
 } from "@/lib/storage/local";
+import { pruneEvents } from "@/lib/storage/guest-data";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { useToast } from "./toast-provider";
@@ -235,7 +236,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           const guest = guestRef.current ?? loadGuest();
           const r = applyLocally(ev);
           if (r.accepted) {
-            const next: GuestData = { ...guest, state: r.state, events: [...guest.events, ev].slice(-MAX_LOCAL_EVENTS) };
+            const next: GuestData = { ...guest, state: r.state, events: pruneEvents([...guest.events, ev], MAX_LOCAL_EVENTS) };
             guestRef.current = next;
             if (!saveGuest(next)) push({ tone: "warn", title: "Penyimpanan browser penuh atau diblokir. Progres mungkin tidak tersimpan." });
             setState(r.state);

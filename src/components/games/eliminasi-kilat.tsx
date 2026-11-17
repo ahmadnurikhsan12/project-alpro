@@ -4,8 +4,9 @@ import { Flame, Timer } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, MathBlock, ProgressBar } from "@/components/ui";
 import { GAME_BY_ID } from "@/content/games";
-import { formatEquation, formatNumber, generateSystem, pick, planElimination, shuffle, type Difficulty, type Variable } from "@/lib/math/spldv";
+import { coefficientOf, formatEquation, formatNumber, generateSystem, pick, planElimination, shuffle, type Difficulty, type Variable } from "@/lib/math/spldv";
 import { cn } from "@/lib/utils";
+import { kilatMetrics, kilatMirror } from "@/lib/games/rmt";
 import { GameHud, type GameProps } from "./game-shell";
 
 const DURATION: Record<Difficulty, number> = { mudah: 90, sedang: 75, sulit: 60 };
@@ -16,6 +17,8 @@ interface KQ {
   lines: string[];
   options: string[];
   answer: number;
+  /** Alasan matematis jawaban benar — ditampilkan saat jawaban salah (makna, bukan hanya hafalan). */
+  why: string;
 }
 
 function uniqueOptions(correct: string, candidates: string[]): { options: string[]; answer: number } {
@@ -40,6 +43,7 @@ function makeQuestion(d: Difficulty): KQ {
     return {
       prompt: `${scaled ? "Setelah dikalikan, a" : "A"}gar ${plan.eliminate} hilang, kedua persamaan ...`,
       lines,
+      why: `Koefisien ${plan.eliminate} adalah ${formatNumber(coefficientOf(scaled ? plan.scaled1 : g.e1, plan.eliminate))} dan ${formatNumber(coefficientOf(scaled ? plan.scaled2 : g.e2, plan.eliminate))}: ${plan.operation === "add" ? "berlawanan tanda, jadi dijumlahkan agar menjadi 0" : "sama besar dan bertanda sama, jadi dikurangkan agar menjadi 0"}.`,
       ...uniqueOptions(correct, ["Dijumlahkan", "Dikurangkan"]),
     };
   }
@@ -50,6 +54,7 @@ function makeQuestion(d: Difficulty): KQ {
     return {
       prompt: `Pengali terkecil agar koefisien ${plan.eliminate} sama besar?`,
       lines: base,
+      why: `Koefisien ${plan.eliminate} adalah ${c1} dan ${c2}. KPK-nya ${plan.target}, jadi pengalinya = KPK dibagi koefisien tiap persamaan.`,
       ...uniqueOptions(fmt(plan.m1, plan.m2), [fmt(plan.m2, plan.m1), fmt(c1, c2), fmt(plan.m1 + 1, plan.m2 + 1), fmt(plan.m1 * 2, plan.m2 * 2), fmt(1, plan.m2 + 1)]),
     };
   }
@@ -59,6 +64,7 @@ function makeQuestion(d: Difficulty): KQ {
   return {
     prompt: `Berapakah nilai ${target}?`,
     lines: base,
+    why: `Nilai ${target} dapat diperiksa dengan substitusi ke kedua persamaan: pasangan yang benar harus memenuhi keduanya.`,
     ...uniqueOptions(formatNumber(val), [formatNumber(val + 1), formatNumber(-val), formatNumber(other), formatNumber(val - 1), formatNumber(val + 2)]),
   };
 }
@@ -76,12 +82,17 @@ export function EliminasiKilat({ difficulty, onFinish }: GameProps) {
   const done = useRef(false);
   const stats = useRef({ score: 0, answered: 0, correct: 0 });
   stats.current = { score, answered, correct };
+  const shownAt = useRef(Date.now());
+  const answerSeconds = useRef(0);
+  const maxCombo = useRef(0);
+  const [lastWhy, setLastWhy] = useState<string | null>(null);
 
   const end = useCallback(() => {
     if (done.current) return;
     done.current = true;
     const s = stats.current;
-    onFinish({ score: s.score, correct: s.correct, total: s.answered, summary: `${s.correct} benar dari ${s.answered} jawaban.` });
+    const ks = { answered: s.answered, correct: s.correct, maxCombo: maxCombo.current, answerSeconds: answerSeconds.current };
+    onFinish({ score: s.score, correct: s.correct, total: s.answered, summary: `${s.correct} benar dari ${s.answered} jawaban.`, la: kilatMetrics(ks), reflect: kilatMirror(ks) });
   }, [onFinish]);
 
   useEffect(() => {
@@ -96,14 +107,18 @@ export function EliminasiKilat({ difficulty, onFinish }: GameProps) {
   const choose = (idx: number) => {
     if (flash || done.current) return;
     const ok = idx === q.answer;
+    answerSeconds.current += Math.min(60, (Date.now() - shownAt.current) / 1000);
     setAnswered((a) => a + 1);
     if (ok) {
       const bonus = Math.min(combo, 5);
       setScore((s) => s + 10 + bonus);
       setCorrect((c) => c + 1);
       setCombo((c) => c + 1);
+      maxCombo.current = Math.max(maxCombo.current, combo + 1);
+      setLastWhy(null);
     } else {
       setCombo(0);
+      setLastWhy(q.why);
       endAt.current -= 3000;
     }
     setFlash({ ok, idx });
@@ -112,9 +127,12 @@ export function EliminasiKilat({ difficulty, onFinish }: GameProps) {
       () => {
         setFlash(null);
         if (reachedCap) end();
-        else setQ(makeQuestion(difficulty));
+        else {
+          setQ(makeQuestion(difficulty));
+          shownAt.current = Date.now();
+        }
       },
-      ok ? 350 : 900,
+      ok ? 350 : 1600,
     );
   };
 
@@ -164,7 +182,11 @@ export function EliminasiKilat({ difficulty, onFinish }: GameProps) {
             </button>
           ))}
         </div>
-        {flash && !flash.ok && <p className="mt-3 text-sm font-medium text-rose-700">Salah! Waktu berkurang 3 detik.</p>}
+        {flash && !flash.ok && (
+          <p className="mt-3 text-sm font-medium text-rose-700" role="status" data-testid="kilat-why">
+            Salah! Waktu berkurang 3 detik. {lastWhy}
+          </p>
+        )}
       </Card>
     </>
   );

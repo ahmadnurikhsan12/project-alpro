@@ -7,6 +7,11 @@ export type ContentBlock =
   | { type: "list"; items: string[]; ordered?: boolean }
   | { type: "callout"; tone: "info" | "tip" | "warn"; title: string; text: string }
   | { type: "compare"; left: { title: string; items: string[] }; right: { title: string; items: string[] } }
+  /** "Pikirkan dulu": prediksi/alasan sebelum penjelasan (tidak dinilai, 0 XP). */
+  | { type: "think"; question: string; options: string[]; correct: number; explain: string }
+  /** Bidang koordinat. `on` pada titik = indeks garis yang HARUS memuat titik itu (diverifikasi oleh tes). */
+  | { type: "plot"; lines: { a: number; b: number; c: number; label: string; dashed?: boolean }[]; points?: { x: number; y: number; label: string; on: number[] }[]; range?: number; caption: string }
+  | { type: "table"; caption: string; head: string[]; rows: string[][]; highlightRows?: number[] }
   | { type: "anatomy"; equation: string; parts: { label: string; value: string; color: "brand" | "grape" | "amber" | "emerald" }[] };
 
 export interface WorkedExample {
@@ -34,6 +39,8 @@ export interface Lesson {
   examples: WorkedExample[];
   conclusion: string[];
   quiz: Question[];
+  /** Tampilkan refleksi singkat (pilihan/skala) di akhir materi. */
+  reflect?: boolean;
 }
 
 const eq = (a: number, b: number, c: number) => ({ a, b, c });
@@ -620,6 +627,7 @@ export const LESSONS: Lesson[] = [
     summary: "Mengapa salah satu variabel perlu dihilangkan, dan kapan kita menjumlahkan atau mengurangkan.",
     difficulty: "sedang",
     minutes: 20,
+    reflect: true,
     objectives: [
       "Menjelaskan arti dan tujuan metode eliminasi.",
       "Menjelaskan mengapa satu variabel perlu dihilangkan.",
@@ -676,6 +684,24 @@ export const LESSONS: Lesson[] = [
             title: "Mengalikan itu aman",
             text: "Jika x + y = 5, maka 2x + 2y = 10 juga benar untuk pasangan (x, y) yang sama. Mengalikan kedua ruas dengan bilangan yang sama (bukan nol) tidak mengubah penyelesaian — asalkan semua suku ikut dikalikan, termasuk ruas kanan.",
           },
+        ],
+      },
+      {
+        heading: "Pikirkan dulu sebelum menghitung",
+        blocks: [
+          { type: "p", text: "Sebelum membaca penjelasan berikutnya, coba prediksi jawabanmu dulu. Salah menebak tidak masalah: yang penting kamu memberi alasan, lalu membandingkannya dengan penjelasan." },
+          { type: "think", question: "Perhatikan x + y = 10 dan x − y = 4. Jika kedua persamaan dijumlahkan, suku apa yang hilang?", options: ["Suku x","Suku y","Tidak ada yang hilang"], correct: 1, explain: "Suku y: +y dan −y berlawanan, jadi y + (−y) = 0. Itulah sebabnya hasilnya 2x = 14." },
+          { type: "think", question: "Mengapa hasil penjumlahan dua persamaan masih benar untuk pasangan (x, y) yang sama?", options: ["Karena kedua persamaan benar untuk pasangan yang sama, sehingga menjumlahkan dua kesamaan menghasilkan kesamaan yang baru","Karena hasil penjumlahan selalu nol","Karena itu aturan yang harus dihafal tanpa alasan"], correct: 0, explain: "Jika pasangan itu memenuhi persamaan (1) dan (2), maka ruas kiri (1) = ruas kanan (1) dan ruas kiri (2) = ruas kanan (2). Menjumlahkan dua kesamaan tetap menghasilkan kesamaan." },
+        ],
+      },
+      {
+        heading: "Tiga cara melihat sistem yang sama",
+        blocks: [
+          { type: "p", text: "Sistem x + y = 10 dan x − y = 4 dapat dilihat dengan tiga representasi yang saling terhubung: **tabel** pasangan, **grafik** dua garis, dan **aljabar** (eliminasi). Ketiganya menunjuk pada penyelesaian yang sama." },
+          { type: "table", caption: "Tabel: untuk setiap x, nilai y yang memenuhi tiap persamaan. Penyelesaian ada pada baris yang nilai y-nya sama.", head: ["x", "y dari x + y = 10", "y dari x − y = 4"], rows: [["5", "5", "1"], ["6", "4", "2"], ["7", "3", "3"], ["8", "2", "4"]], highlightRows: [2] },
+          { type: "plot", lines: [{ a: 1, b: 1, c: 10, label: "(1) x + y = 10" }, { a: 1, b: -1, c: 4, label: "(2) x − y = 4" }], points: [{ x: 7, y: 3, label: "(7, 3)", on: [0, 1] }], range: 10, caption: "Grafik: kedua garis berpotongan di (7, 3). Titik ini sama dengan baris x = 7 pada tabel, dan sama dengan hasil eliminasi x = 7, y = 3." },
+          { type: "think", question: "Hasil eliminasi 2x = 14 menghasilkan x = 7. Pada grafik, x = 7 berupa …", options: ["Garis tegak yang melewati titik potong kedua garis","Garis datar","Garis miring yang sejajar kedua garis"], correct: 0, explain: "Semua titik dengan x = 7 membentuk garis tegak. Garis itu tetap melewati titik potong (7, 3), karena eliminasi tidak mengubah penyelesaian: ia hanya menggantikan satu garis dengan garis yang lebih mudah dibaca." },
+          { type: "callout", tone: "info", title: "Satu penyelesaian, tiga bukti", text: "Tabel menunjukkan pasangan yang cocok di kedua persamaan, grafik menunjukkan titik potong, dan eliminasi menghitungnya secara pasti. Jika salah satu tidak sejalan dengan yang lain, ada kesalahan yang perlu dicari." },
         ],
       },
     ],
@@ -792,6 +818,7 @@ export const LESSONS: Lesson[] = [
     summary: "Tujuh langkah sistematis: menyamakan koefisien, memilih operasi, sampai menulis pasangan penyelesaian.",
     difficulty: "sedang",
     minutes: 25,
+    reflect: true,
     objectives: [
       "Menyamakan koefisien variabel dengan mengalikan persamaan.",
       "Menentukan operasi penjumlahan atau pengurangan yang tepat.",
@@ -839,6 +866,23 @@ export const LESSONS: Lesson[] = [
             type: "p",
             text: "Setelah satu nilai ditemukan, masukkan nilai itu ke salah satu persamaan awal (pilih yang paling sederhana). Persamaan itu kini hanya memiliki satu variabel yang belum diketahui.",
           },
+        ],
+      },
+      {
+        heading: "Pikirkan dulu: pilih variabel mana?",
+        blocks: [
+          { type: "p", text: "Pada sistem 2x + 3y = 12 dan 3x + 4y = 17, kamu boleh menghilangkan x atau y lebih dulu. Hasil akhirnya sama, tetapi pekerjaannya bisa lebih ringan atau lebih berat." },
+          { type: "think", question: "Mengeliminasi variabel mana yang memerlukan pengali lebih kecil?", options: ["Variabel x","Variabel y","Sama saja"], correct: 0, explain: "Koefisien x adalah 2 dan 3 (KPK 6, pengali 3 dan 2). Koefisien y adalah 3 dan 4 (KPK 12, pengali 4 dan 3). Pengali untuk x lebih kecil, jadi hitungannya lebih ringan. Hasil akhirnya tetap sama." },
+        ],
+      },
+      {
+        heading: "Satu sistem, tiga representasi",
+        blocks: [
+          { type: "p", text: "Sistem 2x + 3y = 12 dan 3x + 4y = 17 diselesaikan dengan menghilangkan x: kalikan (1) dengan 3 dan (2) dengan 2, lalu kurangkan. Hasilnya y = 2, dan substitusi memberi x = 3." },
+          { type: "table", caption: "Tabel: pasangan bilangan bulat yang memenuhi masing-masing persamaan. Pasangan yang sama muncul di kedua daftar.", head: ["Memenuhi (1): 2x + 3y = 12", "Memenuhi (2): 3x + 4y = 17"], rows: [["(0, 4)", "(−1, 5)"], ["(3, 2)", "(3, 2)"], ["(6, 0)", "(7, −1)"]], highlightRows: [1] },
+          { type: "plot", lines: [{ a: 2, b: 3, c: 12, label: "(1)" }, { a: 3, b: 4, c: 17, label: "(2)" }, { a: 0, b: 1, c: 2, label: "y = 2 (hasil eliminasi)", dashed: true }], points: [{ x: 3, y: 2, label: "(3, 2)", on: [0, 1, 2] }], range: 10, caption: "Grafik: garis putus-putus y = 2 adalah persamaan yang kamu peroleh setelah x dieliminasi. Garis itu melewati titik potong (3, 2)." },
+          { type: "think", question: "Garis y = 2 yang diperoleh dari eliminasi x tampak sebagai …", options: ["Garis datar yang melewati titik potong","Garis tegak","Garis yang sejajar kedua garis awal"], correct: 0, explain: "y = 2 dipenuhi semua titik dengan y = 2: garis datar. Karena penyelesaian sistem adalah (3, 2), garis itu pasti melewati titik potong." },
+          { type: "callout", tone: "tip", title: "Bandingkan strategimu", text: "Setelah selesai, tanyakan pada dirimu: andai aku mengeliminasi variabel yang lain, apa yang berubah (pengali, besar angka) dan apa yang tetap (pasangan penyelesaian)?" },
         ],
       },
     ],
@@ -960,6 +1004,7 @@ export const LESSONS: Lesson[] = [
     summary: "Substitusikan jawaban ke kedua persamaan dan kenali kesalahan umum dalam eliminasi.",
     difficulty: "sedang",
     minutes: 15,
+    reflect: true,
     objectives: [
       "Memeriksa jawaban dengan substitusi ke persamaan pertama dan kedua.",
       "Menyimpulkan apakah jawaban benar.",
@@ -1008,6 +1053,22 @@ export const LESSONS: Lesson[] = [
             title: "Hati-hati dengan tanda minus",
             text: "Saat mengurangkan persamaan, setiap suku pada persamaan kedua berubah tanda. Tulis dengan tanda kurung agar tidak terlewat.",
           },
+        ],
+      },
+      {
+        heading: "Pikirkan dulu: cukupkah satu persamaan?",
+        blocks: [
+          { type: "p", text: "Pasangan (6, 0) memenuhi x + 2y = 6. Apakah itu cukup untuk menyimpulkan bahwa (6, 0) adalah penyelesaian sistem x + 2y = 6 dan 3x − y = 11?" },
+          { type: "think", question: "Apakah (6, 0) penyelesaian sistem x + 2y = 6 dan 3x − y = 11?", options: ["Ya, karena memenuhi persamaan pertama","Bukan: pasangan harus memenuhi kedua persamaan, dan 3(6) − 0 = 18, bukan 11","Ya, karena nilai y-nya nol"], correct: 1, explain: "Penyelesaian SPLDV harus benar untuk kedua persamaan sekaligus. (6, 0) hanya memenuhi persamaan pertama." },
+          { type: "think", question: "Jika pemeriksaan menunjukkan satu persamaan tidak terpenuhi, langkah yang paling masuk akal adalah …", options: ["Mengulang perhitungan dan mencari letak kesalahan, misalnya tanda atau ruas kanan","Mengabaikan persamaan yang tidak terpenuhi","Mengganti soalnya"], correct: 0, explain: "Pemeriksaan berguna karena memberi tahu bahwa ada yang keliru. Kesalahan yang paling sering: lupa mengalikan ruas kanan atau salah tanda saat mengurangkan." },
+        ],
+      },
+      {
+        heading: "Pemeriksaan dilihat dari tiga sisi",
+        blocks: [
+          { type: "table", caption: "Tabel pemeriksaan untuk dua pasangan kandidat pada sistem x + 2y = 6 dan 3x − y = 11.", head: ["Pasangan", "(1): x + 2y", "(2): 3x − y", "Kesimpulan"], rows: [["(4, 1)", "4 + 2 = 6 ✓", "12 − 1 = 11 ✓", "Penyelesaian"], ["(6, 0)", "6 + 0 = 6 ✓", "18 − 0 = 18 ≠ 11 ✗", "Bukan penyelesaian"]], highlightRows: [0] },
+          { type: "plot", lines: [{ a: 1, b: 2, c: 6, label: "(1) x + 2y = 6" }, { a: 3, b: -1, c: 11, label: "(2) 3x − y = 11" }], points: [{ x: 4, y: 1, label: "(4, 1)", on: [0, 1] }, { x: 6, y: 0, label: "(6, 0)", on: [0] }], range: 10, caption: "Grafik: (4, 1) berada pada kedua garis (titik potong). (6, 0) hanya berada pada garis (1), sehingga bukan penyelesaian." },
+          { type: "callout", tone: "info", title: "Memeriksa = menguji kedua garis", text: "Memasukkan pasangan ke persamaan sama artinya dengan bertanya: apakah titik itu terletak pada garis tersebut? Penyelesaian harus terletak pada kedua garis sekaligus." },
         ],
       },
     ],

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { REFLECTION_COPY } from "@/content/reflection-copy";
+import { copyFor } from "@/content/reflection-copy";
 import {
   REASON_IDS,
   checkTable,
@@ -196,18 +196,18 @@ describe("metrik Learning Activity", () => {
 describe("registri refleksi Tahap 3", () => {
   it("setiap prompt punya teks tampilan, dan setiap opsi punya label", () => {
     for (const p of REFLECTION_PROMPTS) {
-      const copy = REFLECTION_COPY[p.id];
-      expect(copy, p.id).toBeDefined();
+      const copy = copyFor(p.context, p.id)!;
+      expect(copy, `${p.context}/${p.id}`).toBeDefined();
       expect(copy.question.length).toBeGreaterThan(10);
       if (p.kind === "choice") for (const o of p.options) expect(copy.options?.[o], `${p.id}.${o}`).toBeTruthy();
       else expect(copy.scaleLabels).toBeDefined();
     }
   });
 
-  it("id prompt unik per konteks dan hanya konteks Lab pada tahap ini", () => {
+  it("id prompt unik per konteks, dan konteks yang terisi adalah Lab, permainan, dan materi", () => {
     const keys = REFLECTION_PROMPTS.map((p) => `${p.context}/${p.id}`);
     expect(new Set(keys).size).toBe(keys.length);
-    expect(new Set(REFLECTION_PROMPTS.map((p) => p.context))).toEqual(new Set(["lab_elimination", "lab_checker"]));
+    expect(new Set(REFLECTION_PROMPTS.map((p) => p.context))).toEqual(new Set(["lab_elimination", "lab_checker", "tebak_nilai", "eliminasi_kilat", "lesson"]));
   });
 });
 

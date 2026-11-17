@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const PAGES = ["/", "/dashboard", "/materi", "/materi/langkah-penyelesaian-metode-eliminasi", "/lab", "/lab?tab=graph", "/lab?tab=checker", "/latihan", "/games", "/games/tebak-nilai", "/evaluasi", "/pencapaian", "/riwayat", "/profil", "/masuk"];
+const PAGES = ["/", "/dashboard", "/materi", "/materi/konsep-metode-eliminasi", "/materi/langkah-penyelesaian-metode-eliminasi", "/materi/memeriksa-kebenaran-solusi", "/games/eliminasi-kilat", "/lab", "/lab?tab=graph", "/lab?tab=checker", "/latihan", "/games", "/games/tebak-nilai", "/evaluasi", "/pencapaian", "/riwayat", "/profil", "/masuk"];
 
 for (const p of PAGES) {
   test(`tanpa scroll horizontal di ponsel: ${p}`, async ({ page }) => {

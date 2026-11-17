@@ -42,7 +42,7 @@ export const MAX_REFLECTION_RESPONSES = 12;
 /**
  * Tahap 3: prompt Lab (Simulasi Eliminasi dan Uji Pasangan). Id dan opsi bersifat STABIL
  * (dipakai sebagai data); teks tampilan ada di src/content/reflection-copy.ts.
- * Tahap 4 menambahkan prompt Tebak Nilai, Eliminasi Kilat, dan materi.
+ * Tahap 4 menambahkan prompt Tebak Nilai, Eliminasi Kilat, dan materi Modul 4–6.
  */
 export const REFLECTION_PROMPTS: readonly ReflectionPrompt[] = [
   { id: "bagian_menantang", context: "lab_elimination", kind: "choice", options: ["analisis", "pilih_variabel", "pengali", "operasi", "hitung", "grafik"] },
@@ -54,6 +54,20 @@ export const REFLECTION_PROMPTS: readonly ReflectionPrompt[] = [
   { id: "cara_memprediksi", context: "lab_checker", kind: "choice", options: ["substitusi_hitung", "perkiraan", "menebak"] },
   { id: "makna_penyelesaian", context: "lab_checker", kind: "choice", options: ["memenuhi_kedua", "memenuhi_satu", "dekat_garis"] },
   { id: "keyakinan_prediksi", context: "lab_checker", kind: "scale", min: 1, max: 5 },
+  // ---- Tahap 4: permainan
+  { id: "strategi", context: "tebak_nilai", kind: "choice", options: ["substitusi", "penyesuaian_sinyal", "eliminasi", "menebak"] },
+  { id: "prediksi_membantu", context: "tebak_nilai", kind: "choice", options: ["sangat", "sedikit", "tidak"] },
+  { id: "sinyal_membantu", context: "tebak_nilai", kind: "choice", options: ["sangat", "sedikit", "tidak"] },
+  { id: "keyakinan", context: "tebak_nilai", kind: "scale", min: 1, max: 5 },
+  { id: "prioritas", context: "eliminasi_kilat", kind: "choice", options: ["cepat", "teliti", "seimbang"] },
+  { id: "penyebab_salah", context: "eliminasi_kilat", kind: "choice", options: ["terburu", "konsep", "hitung", "tidak_ada_salah"] },
+  { id: "strategi_berikutnya", context: "eliminasi_kilat", kind: "choice", options: ["pelan_dulu", "periksa_ulang", "tetap_cepat"] },
+  { id: "keyakinan", context: "eliminasi_kilat", kind: "scale", min: 1, max: 5 },
+  // ---- Tahap 4: materi (Modul 4–6)
+  { id: "penjelasan_sendiri", context: "lesson", kind: "choice", options: ["lengkap", "sebagian", "belum"] },
+  { id: "representasi_membantu", context: "lesson", kind: "choice", options: ["tabel", "persamaan", "grafik", "ketiganya", "belum_jelas"] },
+  { id: "bagian_sulit", context: "lesson", kind: "choice", options: ["konsep", "langkah", "hitungan", "istilah", "tidak_ada"] },
+  { id: "keyakinan", context: "lesson", kind: "scale", min: 1, max: 5 },
 ];
 
 export interface ReflectionPayload {

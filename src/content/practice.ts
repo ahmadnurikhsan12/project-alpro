@@ -1,4 +1,5 @@
 import type { Question } from "@/lib/questions/types";
+import { RMT_PRACTICE_QUESTIONS } from "./practice-rmt";
 
 const eq = (a: number, b: number, c: number) => ({ a, b, c });
 
@@ -6,7 +7,7 @@ const eq = (a: number, b: number, c: number) => ({ a, b, c });
  * Bank soal latihan. Kunci jawaban boleh ada di browser karena latihan
  * memberikan umpan balik langsung. (Kunci evaluasi akhir disimpan di server.)
  */
-export const PRACTICE_QUESTIONS: Question[] = [
+const BASE_PRACTICE_QUESTIONS: Question[] = [
   // =========================================================== MUDAH
   {
     id: "p-m-01",
@@ -590,5 +591,8 @@ export const PRACTICE_QUESTIONS: Question[] = [
     verify: { kind: "solution", e1: eq(3, 2, 7), e2: eq(2, 3, 8), x: 1, y: 2 },
   },
 ];
+
+/** Bank latihan = soal dasar + 16 soal RMT (Tahap 4, Modul 4 dan 6). */
+export const PRACTICE_QUESTIONS: Question[] = [...BASE_PRACTICE_QUESTIONS, ...RMT_PRACTICE_QUESTIONS];
 
 export const PRACTICE_BY_ID = Object.fromEntries(PRACTICE_QUESTIONS.map((q) => [q.id, q])) as Record<string, Question>;

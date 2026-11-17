@@ -2,6 +2,7 @@
 
 import { createInitialState, normalizeState } from "@/lib/progress/engine";
 import type { ProgressState, RawEvent } from "@/lib/progress/types";
+import { pruneEvents } from "./guest-data";
 
 const GUEST_KEY = "mathquest.guest.v1";
 const PENDING_KEY = "mathquest.pending.v1";
@@ -59,7 +60,7 @@ export function loadGuest(): GuestData {
 }
 
 export function saveGuest(data: GuestData): boolean {
-  return write(GUEST_KEY, { ...data, events: data.events.slice(-MAX_LOCAL_EVENTS) });
+  return write(GUEST_KEY, { ...data, events: pruneEvents(data.events, MAX_LOCAL_EVENTS) });
 }
 
 export function clearGuest() {

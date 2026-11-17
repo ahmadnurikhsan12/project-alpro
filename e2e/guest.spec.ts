@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { completeAnalysis, predictPair } from "./helpers";
+import { completeAnalysis, predictPair, predictTebak } from "./helpers";
 
 /** Mengumpulkan error runtime agar test gagal jika ada error JS di halaman. */
 function trackErrors(page: Page) {
@@ -206,6 +206,7 @@ for (const g of GAMES) {
         for (let k = 0; k < 8; k++) {
           await page.getByLabel("Tebak x").fill(String(100 + k));
           await page.getByLabel("Tebak y").fill("100");
+          await predictTebak(page);
           await page.getByRole("button", { name: "Tebak", exact: true }).click();
         }
         await page.getByRole("button", { name: r < 2 ? "Ronde berikutnya" : "Lihat hasil akhir" }).click();

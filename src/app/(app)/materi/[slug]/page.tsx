@@ -5,7 +5,10 @@ import { LessonIllustration } from "@/components/illustrations";
 import { Badge, ButtonLink, Card, DifficultyBadge, MathBlock, RichText } from "@/components/ui";
 import { LESSON_BY_SLUG, LESSONS, type ContentBlock } from "@/content/lessons";
 import { cn } from "@/lib/utils";
+import { CoordinatePlot } from "@/components/lab/coordinate-plot";
+import { niceRange } from "@/lib/lab/la";
 import { LessonTracker, MiniQuiz } from "./lesson-client";
+import { LessonReflection, ThinkBlock } from "./lesson-blocks";
 
 export function generateStaticParams() {
   return LESSONS.map((l) => ({ slug: l.slug }));
@@ -79,6 +82,48 @@ function Block({ block }: { block: ContentBlock }) {
           ))}
         </div>
       );
+    case "think":
+      return <ThinkBlock question={block.question} options={block.options} correct={block.correct} explain={block.explain} />;
+    case "table":
+      return (
+        <div className="my-4 overflow-x-auto" data-testid="lesson-table">
+          <table className="w-full min-w-[18rem] text-left text-sm">
+            <caption className="mb-2 text-left text-xs font-semibold text-ink-muted">{block.caption}</caption>
+            <thead className="bg-slate-50 text-xs text-ink-muted">
+              <tr>
+                {block.head.map((h) => (
+                  <th key={h} scope="col" className="px-3 py-2 font-semibold">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {block.rows.map((row, i) => (
+                <tr key={i} className={cn("border-t border-slate-100", block.highlightRows?.includes(i) && "bg-emerald-50/70 font-semibold")}>
+                  {row.map((cell, j) => (
+                    <td key={j} className="px-3 py-2 font-mono">
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    case "plot": {
+      const palette = ["#2546ea", "#7c3aed", "#059669", "#d97706"];
+      const pts = block.points ?? [];
+      return (
+        <CoordinatePlot
+          lines={block.lines.map((l, i) => ({ eq: { a: l.a, b: l.b, c: l.c }, color: palette[i % palette.length], label: l.label, dashed: l.dashed }))}
+          points={pts.map((p, i) => ({ x: p.x, y: p.y, label: p.label, color: i === 0 ? "#dc2626" : "#475569" }))}
+          range={block.range ?? niceRange(pts)}
+          caption={block.caption}
+        />
+      );
+    }
     case "anatomy":
       return (
         <div className="my-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -224,6 +269,16 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
           ))}
         </ul>
       </Card>
+
+      {lesson.reflect && (
+        <Card as="section" id="refleksi" className="mb-6 scroll-mt-20">
+          <h2 className="text-lg font-bold text-ink">Refleksi singkat</h2>
+          <p className="mb-3 mt-1 text-sm text-ink-muted">
+            <strong>Tujuan:</strong> melihat kembali caramu memahami materi ini. Tidak dinilai, tidak menambah XP, dan boleh dilewati.
+          </p>
+          <LessonReflection lessonId={lesson.id} />
+        </Card>
+      )}
 
       <section id="quiz" className="mb-8 scroll-mt-20">
         <h2 className="mb-3 text-xl font-bold text-ink">Mini quiz</h2>

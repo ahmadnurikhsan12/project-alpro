@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui";
-import { REFLECTION_COPY } from "@/content/reflection-copy";
+import { copyFor } from "@/content/reflection-copy";
 import { REFLECTION_PROMPTS, type ReflectionContext, type ReflectionValue } from "@/lib/tutor/reflection-prompts";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +29,7 @@ export function ReflectionForm({
   return (
     <div data-testid="reflection-form" className="space-y-5">
       {prompts.map((p) => {
-        const copy = REFLECTION_COPY[p.id];
+        const copy = copyFor(context, p.id);
         if (!copy) return null;
         return (
           <fieldset key={p.id}>

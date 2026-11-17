@@ -3,6 +3,7 @@
 import { ArrowLeft, Gamepad2, Play, RotateCcw, Sparkles, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState, type ReactNode } from "react";
+import { ReflectionForm } from "@/components/lab/reflection-form";
 import { useProgress } from "@/components/providers/progress-provider";
 import { Badge, Button, ButtonLink, Card, DIFFICULTY_LABEL, ProgressBar, Segmented } from "@/components/ui";
 import type { GameMeta } from "@/content/games";
@@ -15,6 +16,10 @@ export interface GameResult {
   correct: number;
   total: number;
   summary?: string;
+  /** Metrik proses belajar (≤12 kunci, bilangan bulat 0–1000) untuk event `game`. */
+  la?: Record<string, number>;
+  /** Cermin permainan untuk refleksi (hanya mengutip angka siswa sendiri). */
+  reflect?: string;
 }
 
 export interface GameProps {
@@ -36,12 +41,14 @@ export function GameShell({ meta, render }: { meta: GameMeta; render: (p: GamePr
   const [round, setRound] = useState(0);
   const [result, setResult] = useState<GameResult | null>(null);
   const [outcome, setOutcome] = useState<EventOutcome | null>(null);
+  const [reflState, setReflState] = useState<null | "terkirim" | "dilewati">(null);
   const startedAt = useRef(0);
 
   const start = () => {
     setRound((r) => r + 1);
     setResult(null);
     setOutcome(null);
+    setReflState(null);
     startedAt.current = Date.now();
     setPhase("play");
   };
@@ -52,7 +59,7 @@ export function GameShell({ meta, render }: { meta: GameMeta; render: (p: GamePr
     setResult(res);
     setPhase("result");
     const durationSec = Math.max(1, Math.round((Date.now() - startedAt.current) / 1000));
-    const o = await record({ type: "game", gameId: meta.id, difficulty, score, correct: r.correct, total: r.total, durationSec });
+    const o = await record({ type: "game", gameId: meta.id, difficulty, score, correct: r.correct, total: r.total, durationSec, ...(r.la ? { la: r.la } : {}) });
     setOutcome(o);
   };
 
@@ -139,6 +146,32 @@ export function GameShell({ meta, render }: { meta: GameMeta; render: (p: GamePr
             <Sparkles className="h-4 w-4" /> {outcome ? `+${outcome.xpGained} XP` : "Menyimpan hasil..."}
           </p>
           {outcome?.message && <p className="mt-1 text-xs text-ink-muted">{outcome.message}</p>}
+          {meta.reflection && (
+            <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-slate-200 p-4 text-left" data-testid="game-reflection">
+              <h3 className="font-bold text-ink">Refleksi singkat</h3>
+              {result.reflect && <p className="mt-1 text-sm text-ink-soft" data-testid="game-mirror">{result.reflect}</p>}
+              <div className="mt-3">
+                {reflState === null ? (
+                  <ReflectionForm
+                    context={meta.reflection.context}
+                    promptIds={meta.reflection.promptIds}
+                    onSubmit={(responses) => {
+                      setReflState("terkirim");
+                      void record({ type: "reflection", context: meta.reflection!.context, refId: meta.id, responses });
+                    }}
+                    onSkip={() => {
+                      setReflState("dilewati");
+                      void record({ type: "reflection", context: meta.reflection!.context, refId: meta.id, responses: {}, skipped: true });
+                    }}
+                  />
+                ) : (
+                  <p role="status" data-testid="game-reflection-done" className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+                    {reflState === "terkirim" ? "Terima kasih, refleksimu tersimpan." : "Refleksi dilewati."}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
           <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
             <Button onClick={start}>
               <RotateCcw className="h-4 w-4" /> Main lagi

@@ -45,4 +45,4 @@ Ketiganya **tidak linear**: siswa dapat “Buka kembali analisisku”, “Ubah r
 
 - Refleksi hanya pilihan/skala (tanpa teks bebas), divalidasi terhadap registri `REFLECTION_PROMPTS`.
 - Metrik proses (≤12 kunci bilangan bulat 0–1000, tanpa data pribadi): `analisis_percobaan`, `analisis_petunjuk`, `variabel_efisien`, `pengali_percobaan`, `operasi_percobaan`, `prediksi_persis`, `prediksi_setara`, `prediksi_dilewati`, `ubah_rencana`, `petunjuk_total`, `grafik_ditandai`, `selesai_ke`.
-- Pada Guest Mode, catatan pembelajaran rinci (`learning`) belum disimpan di perangkat; hanya aktivitas dan penghitung. Penyimpanan rinci memerlukan Email Mode dan migrasi database yang **belum dijalankan** tanpa persetujuan.
+- **Koreksi (Tahap 4):** pernyataan sebelumnya di sini bahwa Guest Mode belum menyimpan data pembelajaran di perangkat KURANG TEPAT. Guest Mode menyimpan log event mentah (termasuk metrik `la` dan jawaban refleksi) di localStorage; yang tidak disimpan hanyalah catatan turunan (`LearningRecord`), yang dapat dibangun ulang dari event. Lihat `docs/guest-data.md`.

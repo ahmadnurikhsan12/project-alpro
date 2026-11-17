@@ -50,3 +50,10 @@ export async function solvePreset3WithY(page: Page, tap = false) {
   await click(page.getByRole("button", { name: "Periksa", exact: true }));
   await click(page.getByRole("button", { name: /Periksa jawaban/ }));
 }
+
+/** Tebak Nilai: memilih prediksi kedua persamaan dan alasan sebelum menebak. */
+export async function predictTebak(page: Page, s1 = "Terlalu kecil", s2 = "Terlalu kecil", reason = "Saya menebak dulu") {
+  await page.getByRole("radiogroup", { name: "Prediksi Persamaan (1)" }).getByRole("radio", { name: s1, exact: true }).click();
+  await page.getByRole("radiogroup", { name: "Prediksi Persamaan (2)" }).getByRole("radio", { name: s2, exact: true }).click();
+  await page.getByRole("radiogroup", { name: "Alasan tebakan" }).getByRole("radio", { name: reason }).click();
+}

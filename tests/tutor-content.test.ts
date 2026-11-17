@@ -18,8 +18,8 @@ const PILOT = ALL_TUTOR_QUESTIONS.filter((q) => PILOT_TOPICS.includes(q.topic));
 const byId = Object.fromEntries(ALL_TUTOR_QUESTIONS.map((q) => [q.id, q]));
 
 describe("cakupan metadata tutor", () => {
-  it("seluruh 37 soal pilot Modul 4–6 memiliki metadata, dan hanya soal itu", () => {
-    expect(PILOT).toHaveLength(37);
+  it("seluruh 53 soal pilot Modul 4–6 (37 + 16 soal RMT) memiliki metadata, dan hanya soal itu", () => {
+    expect(PILOT).toHaveLength(53);
     for (const q of PILOT) expect(MEDIATION_BY_ID[q.id], q.id).toBeDefined();
     for (const id of Object.keys(MEDIATION_BY_ID)) expect(PILOT.some((q) => q.id === id), `${id} bukan soal pilot`).toBe(true);
   });
