@@ -30,6 +30,11 @@ Fitur aktif hanya jika server memiliki `LLM_API_KEY`. Tanpa kunci, halaman menam
 3. Buka `/tanya` dan uji satu pertanyaan.
 Mematikan fitur: hapus `LLM_API_KEY` (`npx vercel env rm LLM_API_KEY production`) lalu deploy ulang.
 
+## Penyedia dan model yang dipakai saat ini
+- Penyedia: Groq (paket gratis, tanpa kartu). Model: `qwen/qwen3.8-27b` (diatur lewat `LLM_MODEL`). Model bawaan sebelumnya (`llama-3.3-70b-versatile`) sudah tidak tersedia; daftar model Groq berubah, periksa dengan `GET https://api.groq.com/openai/v1/models`. Jika fitur tiba-tiba menjawab "Tutor AI sedang tidak dapat dihubungi", periksa dulu apakah model masih ada.
+- Jawaban model dirapikan di server menjadi teks biasa (LaTeX/markdown dihapus).
+- **Kunci API:** jika pernah tertempel di chat, repositori, atau tangkapan layar, anggap bocor: cabut di console.groq.com → API Keys, buat yang baru, lalu `npx vercel@latest env rm LLM_API_KEY production`, `env add LLM_API_KEY production`, dan deploy ulang.
+
 ## Batasan dan risiko
 - AI dapat keliru (termasuk matematika). Siswa diingatkan memeriksa dengan substitusi dan materi; jawaban AI **tidak dinilai** dan tidak memberi XP.
 - Pengenal soal bernilai berbasis angka: soal yang diparafrasekan dengan angka berbeda tidak terdeteksi (dan memang bukan soal yang sama). Orang yang sengaja menyiasati tidak dapat dicegah sepenuhnya; pengawasan guru saat asesmen tetap perlu.

@@ -3,7 +3,7 @@ import { PRACTICE_QUESTIONS } from "@/content/practice";
 import { ASSESSMENT_FORMS } from "@/server/assessment-bank";
 import { EVALUATION_QUESTIONS } from "@/server/evaluation-bank";
 import { checkQuestion, classifyTask, MAX_QUESTION_CHARS, numbersOf } from "@/server/ask/guard";
-import { chat, llmConfig } from "@/server/ask/llm";
+import { chat, cleanAnswer, llmConfig } from "@/server/ask/llm";
 import { buildSystemPrompt } from "@/server/ask/prompt";
 import { retrieve } from "@/server/ask/retrieve";
 import { resetRateLimits } from "@/server/rate-limit";
@@ -87,6 +87,19 @@ describe("klien LLM", () => {
     expect(await chat(cfg, [], res(500, {}))).toEqual({ ok: false, kind: "error" });
     expect(await chat(cfg, [], res(200, { choices: [] }))).toEqual({ ok: false, kind: "error" });
     expect(await chat(cfg, [], (async () => { throw new Error("jaringan"); }) as unknown as typeof fetch)).toEqual({ ok: false, kind: "error" });
+  });
+});
+
+describe("merapikan jawaban model", () => {
+  it("menghapus LaTeX dan markdown tanpa merusak matematika biasa", () => {
+    expect(cleanAnswer("Hitung $2x$ dan **kurangkan**: 6x - 6x = 0 $\\rightarrow$ hilang")).toBe("Hitung 2x dan kurangkan: 6x - 6x = 0 → hilang");
+    expect(cleanAnswer("\\(x + y = 5\\) dan \\frac{3}{4}")).toBe("x + y = 5 dan (3)/(4)");
+    expect(cleanAnswer("## Judul\n\n\n\nIsi `kode`")).toBe("Judul\n\nIsi kode");
+    expect(cleanAnswer("2x + 3y = 12 dan x * y")).toBe("2x + 3y = 12 dan x * y");
+  });
+  it("jawaban yang kosong setelah dirapikan dianggap galat", async () => {
+    const f = (async () => new Response(JSON.stringify({ choices: [{ message: { content: "$$" } }] }), { status: 200 })) as unknown as typeof fetch;
+    expect(await chat({ apiKey: "k", baseUrl: "https://x.test/v1", model: "m" }, [], f)).toEqual({ ok: false, kind: "error" });
   });
 });
 

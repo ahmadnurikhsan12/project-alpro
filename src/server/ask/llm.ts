@@ -13,8 +13,38 @@ export function llmConfig(env: Record<string, string | undefined> = process.env)
   return {
     apiKey,
     baseUrl: (env.LLM_BASE_URL?.trim() || "https://api.groq.com/openai/v1").replace(/\/+$/, ""),
-    model: env.LLM_MODEL?.trim() || "llama-3.3-70b-versatile",
+    model: env.LLM_MODEL?.trim() || "qwen/qwen3.8-27b",
   };
+}
+
+const SYMBOLS: Record<string, string> = {
+  rightarrow: "→",
+  Rightarrow: "⇒",
+  to: "→",
+  leftarrow: "←",
+  times: "×",
+  cdot: "·",
+  div: "÷",
+  neq: "≠",
+  leq: "≤",
+  geq: "≥",
+  approx: "≈",
+  pm: "±",
+};
+
+/**
+ * Merapikan jawaban model menjadi teks biasa: model sering memakai LaTeX/markdown walau diminta tidak,
+ * sedangkan halaman Tanya menampilkan teks apa adanya.
+ */
+export function cleanAnswer(raw: string): string {
+  let t = raw;
+  t = t.replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, "($1)/($2)");
+  t = t.replace(/\\([A-Za-z]+)/g, (m, name: string) => SYMBOLS[name] ?? m);
+  t = t.replace(/\\[()[\]]/g, "");
+  t = t.replace(/\$+/g, "");
+  t = t.replace(/\*\*([^*]+)\*\*/g, "$1").replace(/__([^_]+)__/g, "$1").replace(/`/g, "");
+  t = t.replace(/^#{1,6}\s+/gm, "");
+  return t.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
 export type LlmResult = { ok: true; text: string } | { ok: false; kind: "quota" | "error" };
@@ -39,7 +69,9 @@ export async function chat(cfg: LlmConfig, messages: ChatMessage[], fetchImpl: t
     const data = (await res.json()) as { choices?: { message?: { content?: unknown } }[] };
     const text = data.choices?.[0]?.message?.content;
     if (typeof text !== "string" || !text.trim()) return { ok: false, kind: "error" };
-    return { ok: true, text: text.trim().slice(0, 2000) };
+    const cleaned = cleanAnswer(text).slice(0, 2000);
+    if (!cleaned) return { ok: false, kind: "error" };
+    return { ok: true, text: cleaned };
   } catch {
     return { ok: false, kind: "error" };
   } finally {
