@@ -140,7 +140,8 @@ export function EliminationSim() {
   const [subInto, setSubInto] = useState<1 | 2>(1);
   const [otherS, setOtherS] = useState("");
   const [otherFeedback, setOtherFeedback] = useState<{ ok: boolean; text: string } | null>(null);
-  const [recorded, setRecorded] = useState(false);
+  const [runs, setRuns] = useState(0);
+  const [guess, setGuess] = useState<"" | "x" | "y" | "sama" | "belum_tahu">("");
   // ---- Learning Activity (Tahap 3)
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -212,7 +213,8 @@ export function EliminationSim() {
       setOpTries(0);
       setMarked(false);
       setReflState(null);
-      setRecorded(false);
+      setRuns(0);
+      setGuess("");
     }
     if (s <= 1) {
       setElim(null);
@@ -331,33 +333,47 @@ export function EliminationSim() {
     }
   };
 
+  /**
+   * Mengirim metrik proses (event lab dengan `la`). Dikirim saat menyelesaikan sistem DAN saat siswa
+   * mengubah rencana setelah menyelesaikan — agar eksplorasi alternatif (yang penting untuk analisis uji
+   * coba) tercatat. XP tetap hanya dari event lab pertama pada hari itu (15/alat/hari); sisanya 0 XP.
+   */
+  const sendLa = (selesaiKe: number, ubahRencana: number) =>
+    void record({
+      type: "lab",
+      tool: "elimination",
+      la: elimMetrics({
+        analisisPercobaan: analysis?.percobaan ?? 0,
+        analisisPetunjuk: analysis?.petunjuk ?? 0,
+        variabelEfisien: elim ? efficientVariables(e1, e2).includes(elim) : null,
+        pengaliPercobaan: mWrong + 1,
+        operasiPercobaan: opTries,
+        prediksi: predResult,
+        ubahRencana,
+        petunjukTotal: hintCount + (analysis?.petunjuk ?? 0),
+        grafikDitandai: marked,
+        selesaiKe,
+      }),
+    });
+
   const finish = () => {
     setStep(7);
-    if (!recorded) {
-      setRecorded(true);
-      void record({
-        type: "lab",
-        tool: "elimination",
-        la: elimMetrics({
-          analisisPercobaan: analysis?.percobaan ?? 0,
-          analisisPetunjuk: analysis?.petunjuk ?? 0,
-          variabelEfisien: elim ? efficientVariables(e1, e2).includes(elim) : null,
-          pengaliPercobaan: mWrong + 1,
-          operasiPercobaan: opTries,
-          prediksi: predResult,
-          ubahRencana: changes,
-          petunjukTotal: hintCount + (analysis?.petunjuk ?? 0),
-          grafikDitandai: marked,
-        }),
-      });
-    }
+    const n = runs + 1;
+    setRuns(n);
+    sendLa(n, changes);
   };
 
+  const bothUsable = canX && canY;
+  const efficientList = efficientVariables(e1, e2);
+  const efficient: "x" | "y" | "sama" = efficientList.length === 2 ? "sama" : (efficientList[0] ?? "sama");
+
   const changePlan = () => {
+    if (runs > 0) sendLa(runs, changes + 1); // simpan hasil eksplorasi sebelum rencana diubah
     setChanges((c) => c + 1);
     setShowAnalysis(false);
     setMarked(false);
     setReflState(null);
+    setGuess("");
     resetFrom(1);
   };
 
@@ -606,6 +622,9 @@ export function EliminationSim() {
           {step === 2 && derived && (
             <div>
               <h3 className="text-lg font-bold text-ink">Langkah 3 — Tentukan pengali</h3>
+              <p className="mt-2 text-sm text-ink-muted">
+                <strong>Tujuan:</strong> membuat koefisien {elim} sama besar di kedua persamaan tanpa mengubah penyelesaiannya.
+              </p>
               <p className="mt-2 text-ink-soft">
                 Koefisien {elim} adalah <strong>{formatNumber(derived.c1)}</strong> dan <strong>{formatNumber(derived.c2)}</strong>. Dengan bilangan berapa setiap persamaan dikalikan agar koefisien {elim} sama besar?
               </p>
@@ -665,6 +684,9 @@ export function EliminationSim() {
           {step === 3 && scaled && (
             <div>
               <h3 className="text-lg font-bold text-ink">Langkah 4 — Kalikan setiap persamaan</h3>
+              <p className="mt-2 text-sm text-ink-muted">
+                <strong>Tujuan:</strong> menuliskan dua persamaan baru yang setara dengan persamaan awal.
+              </p>
               <p className="mt-2 text-ink-soft">Setiap suku dikalikan, termasuk konstanta di ruas kanan.</p>
               <div className="mt-4 space-y-3 overflow-x-auto rounded-xl bg-slate-50 p-3">
                 <div>
@@ -779,6 +801,9 @@ export function EliminationSim() {
           {step === 5 && scaled && (
             <div>
               <h3 className="text-lg font-bold text-ink">Langkah 6 — Eliminasi &amp; hitung {keep}</h3>
+              <p className="mt-2 text-sm text-ink-muted">
+                <strong>Tujuan:</strong> mendapatkan persamaan satu variabel, lalu menghitung nilainya.
+              </p>
               <div className="mt-3 overflow-x-auto rounded-xl bg-slate-50 p-3">
                 <EqRow eq={scaled.s1} label="(1')" />
                 <EqRow eq={scaled.s2} label="(2')" />
@@ -856,6 +881,9 @@ export function EliminationSim() {
           {step === 6 && scaled?.keepValue && (
             <div>
               <h3 className="text-lg font-bold text-ink">Langkah 7 — Substitusi untuk mencari {elim}</h3>
+              <p className="mt-2 text-sm text-ink-muted">
+                <strong>Tujuan:</strong> melengkapi pasangan (x, y) dengan memakai nilai yang sudah kamu temukan.
+              </p>
               <p className="mt-2 text-ink-soft">
                 Masukkan {keep} = {formatValue(scaled.keepValue)} ke salah satu persamaan awal. Pilih persamaan:
               </p>
@@ -927,6 +955,9 @@ export function EliminationSim() {
           {step === 7 && (
             <div>
               <h3 className="text-lg font-bold text-ink">Langkah 8 — Periksa kebenaran solusi</h3>
+              <p className="mt-2 text-sm text-ink-muted">
+                <strong>Tujuan:</strong> memastikan pasangan itu benar-benar memenuhi kedua persamaan.
+              </p>
               {xVal && yVal ? (
                 <>
                   <p className="mt-2 text-ink-soft">Substitusikan x = {formatValue(xVal)} dan y = {formatValue(yVal)} ke kedua persamaan awal:</p>
@@ -987,6 +1018,36 @@ export function EliminationSim() {
               <p className="mt-2 text-sm text-ink-muted">
                 <strong>Tujuan:</strong> melihat kembali rencanamu dan membandingkannya dengan pilihan lain, supaya kamu bisa memilih lebih baik pada soal berikutnya.
               </p>
+              {bothUsable && guess === "" && (
+                <div data-testid="compare-guess" className="mt-3 rounded-xl border border-brand-100 bg-white p-3">
+                  <p className="text-sm font-bold text-ink">Tebak dulu, baru bandingkan</p>
+                  <p className="mt-1 text-sm text-ink-soft">Menurutmu, mengeliminasi variabel mana yang memerlukan pengali lebih kecil?</p>
+                  <div role="radiogroup" aria-label="Tebakan variabel dengan pengali lebih kecil" className="mt-2 flex flex-wrap gap-2">
+                    {(
+                      [
+                        ["x", "Variabel x"],
+                        ["y", "Variabel y"],
+                        ["sama", "Sama saja"],
+                        ["belum_tahu", "Belum tahu"],
+                      ] as const
+                    ).map(([g, label]) => (
+                      <button key={g} type="button" role="radio" aria-checked={false} onClick={() => setGuess(g)} className="rounded-xl border-2 border-slate-200 px-3 py-1.5 text-sm transition hover:border-brand-300">
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {bothUsable && guess !== "" && (
+                <p role="status" data-testid="compare-guess-result" className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm text-ink-soft">
+                  {guess === "belum_tahu"
+                    ? "Tidak apa-apa. Perhatikan tabel di bawah untuk melihat perbedaannya."
+                    : guess === efficient
+                      ? "Tebakanmu sesuai dengan tabel di bawah."
+                      : "Tebakanmu berbeda dengan tabel di bawah. Perhatikan kolom pengali, lalu pikirkan mengapa."}
+                </p>
+              )}
+              {(!bothUsable || guess !== "") && (
               <div className="mt-3 overflow-x-auto" data-testid="plan-comparison">
                 <table className="w-full text-left text-sm">
                   <caption className="mb-1 text-left text-xs font-semibold text-ink-muted">Perbandingan rencana: mengeliminasi x atau y</caption>
@@ -1027,8 +1088,11 @@ export function EliminationSim() {
                   Pengali di tabel adalah pengali terkecil. Rencana yang paling ringan umumnya adalah yang pengalinya paling kecil. Tidak ada pilihan yang keliru selama langkahnya benar; pilihan yang berbeda hanya membuat hitungan lebih ringan atau lebih berat.
                 </p>
               </div>
+              )}
               <div className="mt-4">
-                {reflState === null ? (
+                {reflState === null && bothUsable && guess === "" ? (
+                  <p className="text-sm text-ink-muted">Isi tebakanmu dulu untuk membuka perbandingan dan formulir refleksi.</p>
+                ) : reflState === null ? (
                   <ReflectionForm
                     context="lab_elimination"
                     promptIds={["bagian_menantang", "alasan_variabel", "bandingan_alternatif", "aturan_tanda_sama", "makna_titik_potong", "keyakinan"]}

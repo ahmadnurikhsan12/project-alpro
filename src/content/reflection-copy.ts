@@ -56,5 +56,13 @@ export const REFLECTION_COPY: Record<string, ReflectionCopy> = {
     question: "Bagaimana kamu membuat prediksimu tadi?",
     options: { substitusi_hitung: "Menghitung dengan substitusi", perkiraan: "Memperkirakan dari angka-angkanya", menebak: "Menebak" },
   },
+  makna_penyelesaian: {
+    question: "Apa yang membuat sebuah pasangan (x, y) disebut penyelesaian SPLDV?",
+    options: {
+      memenuhi_kedua: "Memenuhi kedua persamaan sekaligus",
+      memenuhi_satu: "Memenuhi salah satu persamaan saja",
+      dekat_garis: "Letaknya dekat dengan salah satu garis",
+    },
+  },
   keyakinan_prediksi: { question: "Seberapa yakin kamu pada prediksimu sebelum diuji?", scaleLabels: ["Belum yakin", "Sangat yakin"] },
 };

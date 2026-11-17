@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { completeAnalysis, predictPair } from "./helpers";
+import { completeAnalysis, predictPair, solvePreset3WithY } from "./helpers";
 
 const guestState = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem("mathquest.guest.v1") ?? "{}").state);
 
@@ -129,6 +129,13 @@ test("Learning Activity: rencana + prediksi + grafik + refleksi, dan XP lab teta
 
   // ---- refleksi (0 XP, boleh dikirim)
   await page.getByRole("button", { name: /Lanjut ke refleksi/ }).click();
+  // perbandingan tidak membocorkan strategi: tabel & formulir tertutup sampai siswa menebak dulu
+  await expect(page.getByTestId("plan-comparison")).toHaveCount(0);
+  await expect(page.getByTestId("reflection-form")).toHaveCount(0);
+  await expect(page.getByTestId("compare-guess")).toContainText("variabel mana yang memerlukan pengali lebih kecil");
+  await expect(page.locator("body")).not.toContainText("×1, ×2");
+  await page.getByRole("radiogroup", { name: /Tebakan variabel/ }).getByRole("radio", { name: "Variabel y" }).click();
+  await expect(page.getByTestId("compare-guess-result")).toContainText("sesuai dengan tabel");
   await expect(page.getByTestId("plan-comparison")).toContainText("(pilihanmu)");
   await expect(page.getByTestId("plan-comparison")).toContainText("×1, ×2"); // alternatif x memerlukan pengali lebih besar
   await page.getByRole("radiogroup", { name: /Bagian mana yang paling menantang/ }).getByRole("radio", { name: "Menghubungkan dengan grafik" }).click();
@@ -172,6 +179,8 @@ test("Learning Activity: refleksi boleh dilewati, tidak menambah XP", async ({ p
   await page.getByRole("button", { name: "Periksa", exact: true }).click();
   await page.getByRole("button", { name: /Periksa jawaban/ }).click();
   await page.getByRole("button", { name: /Lanjut ke refleksi/ }).click();
+  await expect(page.getByRole("button", { name: "Kirim refleksi" })).toHaveCount(0); // formulir tertutup sampai siswa menebak
+  await page.getByRole("radiogroup", { name: /Tebakan variabel/ }).getByRole("radio", { name: "Belum tahu" }).click();
   await expect(page.getByRole("button", { name: "Kirim refleksi" })).toBeDisabled(); // belum ada jawaban
   await page.getByRole("button", { name: "Lewati refleksi" }).click();
   await expect(page.getByTestId("reflection-done")).toContainText("dilewati");
@@ -214,4 +223,18 @@ test("Uji Pasangan: wajib prediksi sebelum uji, penyelesaian dibuka setelah dua 
   expect(state.counters.reflections).toBe(1);
   expect(state.counters.labTools).toContain("checker");
   expect(errors).toEqual([]);
+});
+
+test("metrik tercatat saat menyelesaikan dan saat rencana diubah sesudahnya (XP tetap sekali)", async ({ page }) => {
+  await page.goto("/lab?tab=elimination");
+  await page.locator("#preset-elim").selectOption("3");
+  await completeAnalysis(page, PRESET3, { x: "Besarnya berbeda", y: "Sama besar, tanda sama" });
+  await solvePreset3WithY(page);
+  const lab = async () => (await guestState(page)).activity.filter((a: { type: string }) => a.type === "lab");
+  await expect.poll(async () => (await lab()).length).toBe(1); // selesai pertama
+  await page.getByRole("button", { name: "Coba variabel lain" }).click(); // ubah rencana setelah selesai
+  await expect.poll(async () => (await lab()).length).toBe(2); // eksplorasi alternatif tercatat
+  const rows = await lab();
+  expect(rows.reduce((s: number, a: { xp: number }) => s + a.xp, 0)).toBe(15); // XP hanya sekali per hari
+  expect(rows.some((a: { detail: string }) => a.detail === "Mengulang eksplorasi")).toBe(true);
 });

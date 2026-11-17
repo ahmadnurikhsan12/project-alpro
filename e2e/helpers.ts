@@ -26,3 +26,27 @@ export async function predictPair(page: Page, p1: boolean, p2: boolean) {
   await page.getByRole("radiogroup", { name: "Prediksi persamaan (1)" }).getByRole("radio", { name: p1 ? "Terpenuhi" : "Tidak terpenuhi", exact: true }).click();
   await page.getByRole("radiogroup", { name: "Prediksi persamaan (2)" }).getByRole("radio", { name: p2 ? "Terpenuhi" : "Tidak terpenuhi", exact: true }).click();
 }
+
+/** Preset 3 (2x + y = 10, x + y = 7): dari perencanaan memilih y sampai halaman "Periksa kebenaran solusi". */
+export async function solvePreset3WithY(page: Page, tap = false) {
+  const click = (l: import("@playwright/test").Locator) => (tap ? l.tap() : l.click());
+  await click(page.getByRole("button", { name: /^y Koefisien: 1 dan 1/ }));
+  await click(page.getByRole("radio", { name: "Pengali yang diperlukan lebih kecil" }));
+  await click(page.getByRole("button", { name: /Lanjut ke pengali/ }));
+  await page.getByLabel("Persamaan (1) ×").fill("1");
+  await page.getByLabel("Persamaan (2) ×").fill("1");
+  await click(page.getByRole("button", { name: "Periksa", exact: true }));
+  await click(page.getByRole("button", { name: /Kalikan persamaan/ }));
+  await click(page.getByRole("button", { name: /Pilih operasi/ }));
+  await click(page.getByRole("button", { name: "Kurangkan (−)" }));
+  await page.getByLabel("Prediksi koefisien x").fill("1");
+  await page.getByLabel("Prediksi konstanta").fill("3");
+  await click(page.getByRole("button", { name: "Kunci prediksi" }));
+  await click(page.getByRole("button", { name: /Lakukan eliminasi/ }));
+  await page.getByLabel("x =").fill("3");
+  await click(page.getByRole("button", { name: "Periksa", exact: true }));
+  await click(page.getByRole("button", { name: /Cari y/ }));
+  await page.getByLabel("y =").fill("4");
+  await click(page.getByRole("button", { name: "Periksa", exact: true }));
+  await click(page.getByRole("button", { name: /Periksa jawaban/ }));
+}

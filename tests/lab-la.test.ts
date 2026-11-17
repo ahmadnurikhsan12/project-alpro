@@ -18,6 +18,8 @@ import {
 import { easiestVariable, generateSystem, planElimination, satisfies, seededRng, solveSystem, type Difficulty, type Equation, type Variable } from "@/lib/math/spldv";
 import { frac } from "@/lib/math/fraction";
 import { REFLECTION_PROMPTS } from "@/lib/tutor/reflection-prompts";
+import { applyEvent, createInitialState } from "@/lib/progress/engine";
+import { gradeEvent } from "@/lib/progress/grading";
 import { clipLine } from "@/components/lab/coordinate-plot";
 
 const systems = (n: number) => {
@@ -173,13 +175,16 @@ describe("metrik Learning Activity", () => {
       ubahRencana: 1,
       petunjukTotal: 4,
       grafikDitandai: true,
+      selesaiKe: 2,
     });
     expect(Object.keys(m).length).toBeLessThanOrEqual(12);
+    expect(m.selesai_ke).toBe(2);
+    expect(m.ubah_rencana).toBe(1);
     for (const [k, v] of Object.entries(m)) {
       expect(k).toMatch(/^[a-zA-Z0-9_]{1,30}$/);
       expect(Number.isInteger(v) && v >= 0 && v <= 1000).toBe(true);
     }
-    expect(elimMetrics({ ...{ analisisPercobaan: 5000, analisisPetunjuk: -2, variabelEfisien: null, pengaliPercobaan: NaN, operasiPercobaan: 0, prediksi: "dilewati", ubahRencana: 0, petunjukTotal: 0, grafikDitandai: false } }).analisis_percobaan).toBe(1000);
+    expect(elimMetrics({ ...{ analisisPercobaan: 5000, analisisPetunjuk: -2, variabelEfisien: null, pengaliPercobaan: NaN, operasiPercobaan: 0, prediksi: "dilewati", ubahRencana: 0, petunjukTotal: 0, grafikDitandai: false, selesaiKe: 1 } }).analisis_percobaan).toBe(1000);
   });
 
   it("metrik checker valid", () => {
@@ -203,5 +208,24 @@ describe("registri refleksi Tahap 3", () => {
     const keys = REFLECTION_PROMPTS.map((p) => `${p.context}/${p.id}`);
     expect(new Set(keys).size).toBe(keys.length);
     expect(new Set(REFLECTION_PROMPTS.map((p) => p.context))).toEqual(new Set(["lab_elimination", "lab_checker"]));
+  });
+});
+
+describe("pencatatan perubahan rencana (engine)", () => {
+  const AT = "2026-11-12T08:00:00.000Z";
+  const lab = (n: number, la?: Record<string, number>) => gradeEvent({ id: `00000000-0000-4000-8000-0000000${String(5000 + n).padStart(5, "0")}`, at: AT, type: "lab", tool: "elimination", ...(la ? { la } : {}) });
+
+  it("lab ulang pada hari yang sama dengan metrik tercatat (0 XP); tanpa metrik tetap ditolak", () => {
+    let s = createInitialState("2026-11-12T07:00:00.000Z");
+    const r1 = applyEvent(s, lab(1, elimMetrics({ analisisPercobaan: 1, analisisPetunjuk: 0, variabelEfisien: true, pengaliPercobaan: 1, operasiPercobaan: 1, prediksi: "persis", ubahRencana: 0, petunjukTotal: 0, grafikDitandai: false, selesaiKe: 1 })));
+    expect(r1.xpGained).toBeGreaterThanOrEqual(15);
+    s = r1.state;
+    const xpAfterFirst = s.xp;
+    const r2 = applyEvent(s, lab(2, elimMetrics({ analisisPercobaan: 1, analisisPetunjuk: 0, variabelEfisien: false, pengaliPercobaan: 1, operasiPercobaan: 2, prediksi: "dilewati", ubahRencana: 1, petunjukTotal: 1, grafikDitandai: true, selesaiKe: 1 })));
+    expect(r2.accepted).toBe(true);
+    expect(r2.state.xp).toBe(xpAfterFirst); // tidak ada XP tambahan
+    expect(r2.delta.learning).toHaveLength(1);
+    expect((r2.delta.learning[0].payload.metrics as Record<string, number>).ubah_rencana).toBe(1);
+    expect(applyEvent(r2.state, lab(3)).accepted).toBe(false); // perilaku lama dipertahankan
   });
 });

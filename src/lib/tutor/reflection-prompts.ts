@@ -52,6 +52,7 @@ export const REFLECTION_PROMPTS: readonly ReflectionPrompt[] = [
   { id: "makna_titik_potong", context: "lab_elimination", kind: "choice", options: ["memenuhi_kedua", "memenuhi_satu", "belum_paham"] },
   { id: "keyakinan", context: "lab_elimination", kind: "scale", min: 1, max: 5 },
   { id: "cara_memprediksi", context: "lab_checker", kind: "choice", options: ["substitusi_hitung", "perkiraan", "menebak"] },
+  { id: "makna_penyelesaian", context: "lab_checker", kind: "choice", options: ["memenuhi_kedua", "memenuhi_satu", "dekat_garis"] },
   { id: "keyakinan_prediksi", context: "lab_checker", kind: "scale", min: 1, max: 5 },
 ];
 

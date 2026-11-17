@@ -204,6 +204,8 @@ export interface ElimProcess {
   ubahRencana: number;
   petunjukTotal: number;
   grafikDitandai: boolean;
+  /** Sistem ini sudah diselesaikan berapa kali (1 = pertama). */
+  selesaiKe: number;
 }
 
 /** Metrik proses simulasi eliminasi (maks. 12 kunci, nilai bulat 0–1000; tanpa teks bebas). */
@@ -220,6 +222,7 @@ export function elimMetrics(p: ElimProcess): Record<string, number> {
     ubah_rencana: clamp(p.ubahRencana),
     petunjuk_total: clamp(p.petunjukTotal),
     grafik_ditandai: p.grafikDitandai ? 1 : 0,
+    selesai_ke: clamp(p.selesaiKe),
   };
 }
 

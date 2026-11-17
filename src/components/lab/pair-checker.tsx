@@ -229,7 +229,7 @@ export function PairChecker() {
               <div className="rounded-xl border border-slate-200 p-3">
                 <p className="mb-2 text-sm font-bold text-ink">Refleksi singkat</p>
                 {reflState === null ? (
-                  <ReflectionForm context="lab_checker" promptIds={["cara_memprediksi", "keyakinan_prediksi"]} onSubmit={submitReflection} onSkip={skipReflection} />
+                  <ReflectionForm context="lab_checker" promptIds={["cara_memprediksi", "makna_penyelesaian", "keyakinan_prediksi"]} onSubmit={submitReflection} onSkip={skipReflection} />
                 ) : (
                   <p role="status" className="text-sm text-emerald-900">
                     {reflState === "terkirim" ? "Terima kasih, refleksimu tersimpan." : "Refleksi dilewati."}
