@@ -3,7 +3,7 @@
 ## Status
 - **URL publik (HTTPS):** https://mathquest-puce.vercel.app
 - **Platform:** Vercel (akun Hobby/gratis), proyek `mathquest`, framework Next.js App Router, API Routes berjalan sebagai fungsi server (penilaian asesmen dan Evaluasi Akhir dilakukan di server).
-- **Mode:** Guest Mode penuh. **Tidak ada environment variable**, tidak ada Supabase, tidak ada database, tidak ada LLM/API berbayar. Data siswa hanya di browser siswa (localStorage); server tidak menyimpan apa pun.
+- **Mode:** Guest Mode penuh. Tidak ada Supabase dan tidak ada database. Data siswa hanya di browser siswa (localStorage); server tidak menyimpan apa pun. Satu-satunya variabel lingkungan yang bersifat opsional adalah `LLM_API_KEY` (dan `LLM_BASE_URL`, `LLM_MODEL`, `LLM_DAILY_CAP`) untuk halaman **Tanya Tutor AI** dengan layanan AI gratis; tanpa itu fitur nonaktif. Lihat [tanya-tutor-ai.md](tanya-tutor-ai.md).
 - **Biaya:** Rp0. Jangan mengaktifkan billing/upgrade. Tidak ada domain berbayar (memakai subdomain `*.vercel.app`).
 - URL per-deployment (mis. `mathquest-xxxx-iksanbre.vercel.app`) dilindungi *Vercel Authentication* (hanya pemilik akun); **siswa memakai URL produksi di atas**.
 
