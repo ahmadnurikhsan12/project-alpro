@@ -4,7 +4,7 @@ MathQuest adalah website pembelajaran matematika interaktif untuk siswa **SMP ke
 
 Rancangan pembelajarannya mengacu pada pendekatan **Rigorous Mathematical Thinking (RMT)** (Kinard & Kozulin): *Learning Activity* (analisis tugas → perencanaan tindakan → refleksi), fungsi kognitif matematis, alat psikologis (tabel, grafik, persamaan yang saling terhubung), dan pengalaman belajar termediasi. **Catatan jujur:** pemetaan RMT pada fitur adalah *interpretasi pengembang*, bukan klaim buku. MathQuest **tidak** menggantikan mediasi guru, bukan penerapan penuh LPAD, dan **belum membuktikan efektivitas** RMT secara empiris; media ini disiapkan untuk uji coba terbatas. Tutor petunjuk bertahap L1–L4 memakai aturan matematika (tanpa LLM). Halaman opsional **Tanya Tutor AI** memakai layanan AI gratis pihak ketiga dan baru aktif bila kunci API diisi di server. Seluruh aplikasi berbiaya Rp0.
 
-> **Dokumentasi lanjutan** ada di folder [`docs/`](docs/): [panduan demo dan uji coba](docs/panduan-demo-uji-coba.md) · [asesmen dan ekspor CSV (Tahap 5)](docs/tahap5-asesmen-ekspor.md) · [data Guest Mode](docs/guest-data.md) · [Lab dan Learning Activity (Tahap 3)](docs/rmt-tahap3-penerapan.md) · [materi, soal, permainan (Tahap 4)](docs/rmt-tahap4-penerapan.md).
+> **Dokumentasi lanjutan** ada di folder [`docs/`](docs/): [ringkasan RMT dan peta fitur](docs/ringkasan-rmt.md) · [panduan demo dan uji coba](docs/panduan-demo-uji-coba.md) · [asesmen dan ekspor CSV (Tahap 5)](docs/tahap5-asesmen-ekspor.md) · [data Guest Mode](docs/guest-data.md) · [Lab dan Learning Activity (Tahap 3)](docs/rmt-tahap3-penerapan.md) · [materi, soal, permainan (Tahap 4)](docs/rmt-tahap4-penerapan.md).
 
 ## 1. Tujuan
 
@@ -28,6 +28,7 @@ Rancangan pembelajarannya mengacu pada pendekatan **Rigorous Mathematical Thinki
 | **Ekspor Data** | Kode peserta anonim + kode kelompok; unduh ZIP/CSV (Excel-friendly) dari perangkat tanpa login; alat gabung CSV banyak perangkat. Halaman `/ekspor`. |
 | **7 Game** | Detektif Variabel, Misi Belanja, Eliminasi Kilat, Pasangkan Istilah, Tantangan SPLDV, Susun Langkah Eliminasi, Tebak Nilai Variabel (dengan prediksi dan refleksi). |
 | **Gamifikasi** | XP, 10 level, badge. Kebijakan XP: percobaan ke-1 = 100%, ke-2 = 50%, ke-3 dan seterusnya = 0; XP sekali per soal; XP **tidak pernah berkurang** karena salah atau petunjuk; refleksi 0 XP; Lab maksimal 15 XP per alat per hari. |
+| **Tentang RMT** | Halaman `/tentang` untuk siswa: apa itu RMT, tiga kegiatan belajar, di mana RMT muncul, dan batasan klaim yang jujur. Ringkasan lengkap: [docs/ringkasan-rmt.md](docs/ringkasan-rmt.md). |
 | **Dashboard, Riwayat, Profil** | Ringkasan progres, grafik, rekomendasi, riwayat, nama panggilan (tidak diekspor), atur ulang progres lokal. |
 
 ## 3. Teknologi

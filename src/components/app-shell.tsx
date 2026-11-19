@@ -4,6 +4,7 @@ import {
   BookOpen,
   ClipboardCheck,
   ClipboardList,
+  Info,
   MessageCircle,
   Cloud,
   CloudOff,
@@ -42,6 +43,7 @@ export const NAV = [
   { href: "/pencapaian", label: "Pencapaian", icon: Trophy },
   { href: "/riwayat", label: "Riwayat", icon: History },
   { href: "/ekspor", label: "Ekspor Data", icon: FileSpreadsheet },
+  { href: "/tentang", label: "Tentang RMT", icon: Info },
   { href: "/profil", label: "Profil", icon: UserRound },
 ] as const;
 
