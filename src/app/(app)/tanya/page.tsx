@@ -96,7 +96,7 @@ export default function TanyaPage() {
         </h2>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-900">
           <li>Ini adalah <strong>AI</strong>, bukan guru. Jawabannya bisa keliru: periksa dengan materi, substitusi, atau tanyakan kepada gurumu.</li>
-          <li>Pertanyaanmu dikirim lewat server MathQuest ke <strong>layanan AI gratis pihak ketiga</strong>. <strong>Jangan menulis nama, sekolah, nomor, atau data pribadi.</strong> Percakapan tidak disimpan di MathQuest dan tidak ikut diekspor.</li>
+          <li><strong>Jangan menulis nama, sekolah, nomor, atau data pribadi.</strong> Percakapan tidak disimpan di MathQuest dan tidak ikut diekspor.</li>
           <li>Selama Pretest, Posttest, dan Evaluasi Akhir, tutor tidak membantu mengerjakan soalnya. Untuk soal Latihan, tutor hanya memberi petunjuk.</li>
           <li>Tutor ini tidak menggantikan bimbingan guru. Petunjuk bertahap (L1 sampai L4) di <Link href="/latihan" className="font-semibold underline">Latihan</Link> tetap tersedia tanpa AI.</li>
         </ul>
