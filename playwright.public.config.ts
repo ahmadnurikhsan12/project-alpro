@@ -1,6 +1,6 @@
 /** Menjalankan E2E terhadap situs yang SUDAH online (bukan server lokal). Contoh: PUBLIC_URL=https://situs.vercel.app npx playwright test -c playwright.public.config.ts --grep-invert "pembatas laju" */
 import { defineConfig, devices } from "@playwright/test";
-const MOBILE = /(responsive|lab-mobile|stage4-mobile|stage5-mobile|journey-mobile|tanya-mobile)/;
+const MOBILE = /(responsive|lab-mobile|stage4-mobile|stage5-mobile|journey-mobile|tanya-mobile|asisten-mobile)/;
 export default defineConfig({
   testDir: "e2e",
   timeout: 120_000,

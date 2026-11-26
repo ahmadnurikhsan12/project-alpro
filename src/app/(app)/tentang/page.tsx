@@ -15,6 +15,7 @@ const FITUR = [
   ["SPLDV Lab", "Learning Activity: analisis, rencana, prediksi, eliminasi, periksa, refleksi."],
   ["Latihan dan tutor L1–L4", "Petunjuk bertahap tanpa membuka jawaban, dan kesempatan mencoba lagi."],
   ["Tebak Nilai dan Eliminasi Kilat", "Memprediksi sebelum mencoba dan merefleksikan cara bermain."],
+  ["Asisten Belajar", "Soal cerita bertahap: bantuan naik sesuai kesulitanmu, tanpa memberi jawaban akhir (opsional dibantu AI)."],
   ["Pretest dan Posttest", "Mengukur kemampuan sebelum dan sesudah belajar; dinilai di server."],
   ["Tanya Tutor AI", "Bertanya bebas tentang SPLDV (opsional, memakai layanan AI gratis pihak ketiga)."],
 ];
@@ -60,12 +61,20 @@ export default function TentangPage() {
         </ul>
       </Card>
 
+      <Card>
+        <h2 className="text-lg font-bold text-ink">Belajar tanpa kewalahan</h2>
+        <p className="mt-2 text-sm text-ink-soft">
+          Di Asisten Belajar, masalah dipecah menjadi tahap kecil, hasil yang sudah benar dicatat agar tidak perlu diingat-ingat, dan kamu diajak menjelaskan alasanmu. Soal cerita melatih literasi matematika: memahami masalah, membuat model,
+          menyelesaikan, lalu menafsirkan hasilnya kembali ke kehidupan sehari-hari.
+        </p>
+      </Card>
+
       <Card className="border-amber-200 bg-amber-50">
         <h2 className="text-lg font-bold text-amber-900">Yang perlu kamu ketahui (batasan)</h2>
         <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-amber-900">
           <li>MathQuest <strong>tidak menggantikan guru</strong>. Kalau bingung, tanyakan kepada gurumu.</li>
           <li>MathQuest <strong>bukan penerapan penuh LPAD</strong>. Cara penerapan RMT di sini adalah tafsiran pengembang dan belum terbukti efektif.</li>
-          <li>Petunjuk L1–L4 dan umpan baliknya memakai <strong>aturan matematika</strong>, bukan AI. Hanya halaman Tanya Tutor AI yang memakai AI, dan jawabannya bisa keliru.</li>
+          <li>Petunjuk L1–L4 dan umpan baliknya memakai <strong>aturan matematika</strong>, bukan AI. Hanya halaman Asisten Belajar dan Tanya Tutor AI yang memakai AI, dan jawabannya bisa keliru.</li>
           <li>Pretest dan posttest adalah gambaran kemampuan, bukan nilai rapor.</li>
         </ul>
       </Card>

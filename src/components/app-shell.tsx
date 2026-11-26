@@ -2,6 +2,7 @@
 
 import {
   BookOpen,
+  Bot,
   ClipboardCheck,
   ClipboardList,
   Info,
@@ -38,6 +39,7 @@ export const NAV = [
   { href: "/latihan", label: "Latihan", icon: PencilLine },
   { href: "/games", label: "Games", icon: Gamepad2 },
   { href: "/evaluasi", label: "Evaluasi", icon: ClipboardCheck },
+  { href: "/asisten", label: "Asisten Belajar", icon: Bot },
   { href: "/tanya", label: "Tanya Tutor AI", icon: MessageCircle },
   { href: "/asesmen", label: "Pretest/Posttest", icon: ClipboardList },
   { href: "/pencapaian", label: "Pencapaian", icon: Trophy },
