@@ -13,6 +13,8 @@ export default defineConfig({
     command: `npm run start -- -p ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: true,
+    // tes tidak boleh memakai kunci AI asli dari .env: fitur AI diuji dalam keadaan nonaktif atau dipalsukan
+    env: { LLM_API_KEY: "" },
     timeout: 120_000,
   },
   projects: [
