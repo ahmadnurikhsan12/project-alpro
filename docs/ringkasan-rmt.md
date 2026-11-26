@@ -53,6 +53,7 @@ Ketiganya tidak harus berurutan: siswa dapat membuka kembali analisisnya, mengub
 | Tebak Nilai, Eliminasi Kilat | Prediksi, validasi, refleksi kecepatan vs ketelitian | Skor dan XP tidak berubah oleh prediksi |
 | Pretest dan posttest A/B | Pengukuran kompetensi sebelum dan sesudah | Dinilai server; kunci tidak dikirim ke browser |
 | Ekspor CSV | Data proses (percobaan, petunjuk, prediksi, refleksi) untuk analisis | Tanpa data pribadi |
+| Asisten Belajar | Learning Activity, MLE, siklus representasi-manipulasi-validasi pada soal cerita | Pemeriksaan berbasis aturan; AI membimbing tanpa memberi jawaban |
 | Tanya Tutor AI (opsional) | Tanya jawab bergaya mediasi (pertanyaan pemandu, alasan) | Memakai layanan AI gratis pihak ketiga; tidak menjawab soal asesmen; dapat keliru |
 
 ## 6. Kebijakan XP yang konsisten dengan RMT

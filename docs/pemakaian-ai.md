@@ -26,7 +26,11 @@
 
 Kunci API **tidak ditulis di kode** dan tidak diunggah ke GitHub. Ada dua tempat penyimpanannya:
 - Situs online: Environment Variables di Vercel (`LLM_API_KEY`, `LLM_MODEL`).
-- Menjalankan lokal: berkas `.env.local` (contoh nama variabel ada di `.env.example`).
+- Menjalankan lokal: berkas `.env` (contoh nama variabel ada di `.env.example`).
+
+### Asisten Belajar
+
+Halaman `/asisten` memakai AI yang sama sebagai pembimbing proses berpikir pada soal cerita bertahap. Rinciannya: [tahap2-asisten-belajar.md](tahap2-asisten-belajar.md).
 
 ## 2. AI sebagai alat bantu pengembangan
 
@@ -35,12 +39,12 @@ Kode aplikasi dikembangkan dengan bantuan asisten pemrograman AI (Claude Code) d
 ## 3. Cara memverifikasi
 
 1. Buka https://mathquest-puce.vercel.app/tanya, setujui peringatan, lalu ajukan pertanyaan, misalnya "Apa arti titik potong dua garis pada SPLDV?". Jawaban disusun saat itu juga oleh AI.
-2. Menjalankan lokal: isi `LLM_API_KEY` di `.env.local`, jalankan `npm install` lalu `npm run dev`, buka `http://localhost:3000/tanya`.
+2. Menjalankan lokal: isi `LLM_API_KEY` di `.env`, jalankan `npm install` lalu `npm run dev`, buka `http://localhost:3000/tanya`.
 3. Periksa berkas pada tabel di atas dan jalankan `npm test`.
 
 ## 4. Batasan
 
-- Hanya halaman Tanya Tutor AI yang memakai AI. Tutor petunjuk L1–L4, latihan, permainan, dan asesmen memakai aturan matematika.
+- Hanya halaman Asisten Belajar dan Tanya Tutor AI yang memakai AI. Tutor petunjuk L1–L4, latihan, permainan, dan asesmen memakai aturan matematika.
 - Jawaban AI dapat keliru; siswa diminta memeriksanya.
 - Paket gratis memiliki batas pemakaian.
 
